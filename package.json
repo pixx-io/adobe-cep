@@ -14,7 +14,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@pixx.io/jsdk": "^0.1.11",
     "http": "0.0.1-security",
     "https": "^1.0.0"
   }

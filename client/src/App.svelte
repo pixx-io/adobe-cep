@@ -15,7 +15,7 @@
   let themeManagerComponent;
   let helperComponent;
   let pixxio;
-  let userIsAuthenticated = true;
+  let userIsAuthenticated = false;
   let errorMessage = null;
   let userDataPath = null;
   let appDataFolder = null;
@@ -56,7 +56,11 @@
     pixxio = new PIXXIO({
       appKey: "70aK0pH090EyxHgS1sSg3Po8M",
       element: document.getElementById("pixxioWrapper"),
-      modal: false,
+      modal: false
+    });
+
+    pixxio.on('authState', function(authState) {
+      userIsAuthenticated = authState.login;
     });
   }
 
@@ -65,33 +69,37 @@
       activeGetMediaPromise.current = false;
     }
 
-    let allowedTypes = null;
+    let allowTypes = null;
     if (tabName === "openFile") {
-      allowedTypes = ["indd"];
+      allowTypes = ["indd"];
     } else if (tabName === "placeFile") {
-      allowedTypes = ["jpg", "png"];
+      allowTypes = ["jpg", "png"];
     }
 
     const currentPromise = pixxio.getMedia({
       max: 1,
-      allowedFormats: ["original"],
-      allowedTypes: allowedTypes,
+      allowFormats: ["original"],
+      allowTypes: allowTypes,
       additionalResponseFields: ["id", "fileName"],
     });
     currentPromise.current = true;
 
     activeGetMediaPromise = currentPromise;
 
-    currentPromise.then((value) => {
+    currentPromise
+    .then((value) => {
       if (currentPromise.current) {
         if (activeMainTabName === "openFile") {
-            openDocument(value[0]);
+          openDocument(value[0]);
         } else if (activeMainTabName === "placeFile") {
-            placeImage(value[0]);
+          placeImage(value[0]);
         }
 
         getMedia(activeMainTabName);
       }
+    })
+    .catch(() => {
+      getMedia(activeMainTabName);
     });
   }
 

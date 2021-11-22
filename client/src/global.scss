@@ -61,7 +61,6 @@ main {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  padding: 0 20px 20px 20px;
   position: relative;
 
   .field {
@@ -115,6 +114,14 @@ main {
       display: flex;
       flex-direction: column;
       background-color: transparent;
+
+      header {
+        margin-top: 5px;
+
+        a.close {
+          display: none;
+        }
+      }
 
       .pixxioSectionFiles {
         flex: 1;
