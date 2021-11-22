@@ -1,0 +1,21 @@
+{
+  "name": "pixxio-indesign",
+  "version": "2.0.0",
+  "description": "Application Description",
+  "main": "client/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@192.168.88.229:frontend/adobe-indesign-plugin-v2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@pixx.io/jsdk": "^0.1.11",
+    "http": "0.0.1-security",
+    "https": "^1.0.0"
+  }
+}

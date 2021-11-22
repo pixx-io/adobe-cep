@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ExtensionManifest ExtensionBundleId="io.pixx.indesign-v2" ExtensionBundleVersion="1.0.0" Version="7.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <ExtensionList>
+    <Extension Id="io.pixx.indesign-v2.panel" Version="1.0.0" />
+  </ExtensionList>
+  <ExecutionEnvironment>
+    <HostList>
+      <Host Name="IDSN" Version="13" />
+    </HostList>
+    <LocaleList>
+      <Locale Code="All" />
+    </LocaleList>
+    <RequiredRuntimeList>
+      <RequiredRuntime Name="CSXS" Version="11.0" />
+    </RequiredRuntimeList>
+  </ExecutionEnvironment>
+  <DispatchInfoList>
+    <Extension Id="io.pixx.indesign-v2.panel">
+      <DispatchInfo>
+        <Resources>
+					<CEFCommandLine>
+						<Parameter>--enable-nodejs</Parameter>
+            <Parameter>--mixed-context</Parameter>
+						<Parameter>--ignore-certificate-errors</Parameter>
+					</CEFCommandLine>
+          <MainPath>./client/public/index.html</MainPath>
+          <ScriptPath>./host/index.jsx</ScriptPath>
+          <CEFCommandLine />
+        </Resources>
+        <Lifecycle>
+          <AutoVisible>true</AutoVisible>
+        </Lifecycle>
+        <UI>
+          <Type>Panel</Type>
+          <Menu>pixx.io</Menu>
+          <Geometry>
+            <Size>
+              <Height>530</Height>
+              <Width>370</Width>
+            </Size>
+            <MaxSize>
+              <Height>1000</Height>
+              <Width>2000</Width>
+            </MaxSize>
+            <MinSize>
+              <Height>530</Height>
+              <Width>370</Width>
+            </MinSize>
+          </Geometry>
+          <Icons />
+        </UI>
+      </DispatchInfo>
+    </Extension>
+  </DispatchInfoList>
+</ExtensionManifest>
