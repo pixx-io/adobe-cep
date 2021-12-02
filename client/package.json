@@ -14,18 +14,18 @@
     "cssnano": "^5.0.8",
     "postcss": "^8.3.9",
     "postcss-load-config": "^3.1.0",
-    "rollup": "^2.3.4",
+    "rollup": "^2.60.1",
     "rollup-plugin-css-only": "^3.1.0",
     "rollup-plugin-livereload": "^2.0.0",
     "rollup-plugin-scss": "^3.0.0",
     "rollup-plugin-svelte": "^7.0.0",
     "rollup-plugin-terser": "^7.0.0",
-    "sass": "^1.43.4",
-    "svelte": "^3.0.0",
+    "sass": "^1.43.5",
+    "svelte": "^3.44.2",
     "svelte-preprocess": "^4.9.8"
   },
   "dependencies": {
-    "@pixx.io/jsdk": "^0.2.0",
+    "@pixx.io/jsdk": "^0.2.1",
     "sirv-cli": "^1.0.0",
     "svelte-preprocess": "^4.9.8"
   }

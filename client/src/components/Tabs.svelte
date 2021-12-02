@@ -4,19 +4,19 @@
 
   function changeTab(tabName) {
     if (tabName !== activeTabName) {
-        activeTabName = tabName;
+      activeTabName = tabName;
     }
   }
 </script>
 
 <div class="tab">
-    {#each tabs as tab}
-        <button
-            class="tablinks {tab.name}"
-            class:active="{activeTabName === tab.name}"
-            on:click={() => changeTab(tab.name)}
-        >{tab.label}</button>
-    {/each}
+  {#each tabs as tab}
+    <button
+      class="tablinks {tab.name}"
+      class:active="{activeTabName === tab.name}"
+      on:click={() => changeTab(tab.name)}
+    >{tab.label}</button>
+  {/each}
 </div>
 
 <style lang="scss">
