@@ -241,6 +241,7 @@
       helperComponent.getLinkedFileIDs(activeRelinkOptionName).then((fileIDs) => {
         if (fileIDs.length) {
           $pixxio.bulkMainVersionCheck(fileIDs).then((bulkMainVersionResponse) => {
+            console.log('bulkMainVersionResponse: ', bulkMainVersionResponse);
             if (activeRelinkOptionName === 'allUpdatedLinks') {
               bulkMainVersionResponse = bulkMainVersionResponse.filter((file) => !file.isMainVersion);
             }
@@ -248,10 +249,10 @@
             const fileIDsToRelink = bulkMainVersionResponse.map((file) => file.id);
 
             if (fileIDsToRelink.length) {
-              downloadNewVersionOfFilesByIdSync(fileIDsToRelink).then((newVersions) => {
+              downloadNewVersionOfFiles(bulkMainVersionResponse).then((newVersions) => {
                 console.log('SYNC DOWNLOAD DONE: ', newVersions);
 
-                reLinkNewVersionsSync(newVersions).then(() => {
+                reLinkNewVersions(newVersions).then(() => {
                   console.log('SYNC RELINK DONE');
                 });
               });
@@ -268,51 +269,37 @@
     });
   };
 
-  const downloadNewVersionOfFilesByIdSync = (fileIDs) => {
+  const downloadNewVersionOfFiles = (bulkMainVersionResponse) => {
     return new Promise(async (resolve, reject) => {
       updateProgressBar('pending');
 
       const newVersions = [];
 
       const loopThroughFileIDs = (loopIndex) => {
-        const fileID = fileIDs[loopIndex];
-        if (fileID) {
+        const fileInfo = bulkMainVersionResponse[loopIndex];
+        if (fileInfo) {
           const nextStep = () => {
             loopIndex++;
             loopThroughFileIDs(loopIndex);
           };
-
-          const download = (file) => {
-            const remoteFilePath = file.originalFileURL;
-            const localFileName = file.fileName;
-            const localFilePath = appDataFolder + "/" + localFileName;
-            helperComponent.download(remoteFilePath, localFilePath).then((downloadInfo) => {
-              newVersions.push({
-                oldID: fileID,
-                newID: file.id,
-                localFilePath: localFilePath,
-                fileSize: downloadInfo.size
-              });
-              nextStep();
-            }, (error) => {
-              showError(error);
-              nextStep();
-            });
-          };
           
-          showInfo('Download: ' + (loopIndex + 1) + ' / ' + fileIDs.length);
+          showInfo('Download: ' + (loopIndex + 1) + ' / ' + bulkMainVersionResponse.length);
 
-          helperComponent.getFileByID(fileID).then((oldFileResponse) => {
-            const newestFileID = oldFileResponse.file.versions.mainVersion;
-
-            if (fileID !== newestFileID) {
-              helperComponent.getFileByID(newestFileID).then((newFileResponse) => {
-                download(newFileResponse.file);
-              }).catch(() => nextStep());
-            } else {
-              download(oldFileResponse.file);
-            }
-          }).catch(() => nextStep());
+          const remoteFilePath = fileInfo.originalFileURL;
+          const localFileName = fileInfo.fileName;
+          const localFilePath = appDataFolder + "/" + localFileName;
+          helperComponent.download(remoteFilePath, localFilePath).then((downloadInfo) => {
+            newVersions.push({
+              oldID: fileInfo.id,
+              newID: fileInfo.mainVersion,
+              localFilePath: localFilePath,
+              fileSize: downloadInfo.size
+            });
+            nextStep();
+          }, (error) => {
+            showError(error);
+            nextStep();
+          });
         } else {
           updateProgressBar(0);
           showInfo(null);
@@ -323,7 +310,7 @@
     });
   };
 
-  const reLinkNewVersionsSync = (newVersions) => {
+  const reLinkNewVersions = (newVersions) => {
     return new Promise(async (resolve, reject) => {
       updateProgressBar('pending');
 
