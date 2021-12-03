@@ -5,33 +5,29 @@
 
   import { csInterface, pixxio } from "./stores/general.js";
 
-  function getProtocol(remoteUrl) {
+  const getProtocol = (remoteUrl) => {
     return !remoteUrl.charAt(4).localeCompare("s") ? https : http;
-  }
+  };
 
-  function isJson(str) {
+  const isJson = (str) => {
     try {
       JSON.parse(str);
     } catch (e) {
       return false;
     }
     return true;
-  }
+  };
 
-  function sendError(error) {
+  const sendError = (error) => {
     runJsx('sendEvent("io.pixx.csxs.events.showError", "' + error + '")');
-  }
+  };
 
-  function sendInfo(message) {
-    runJsx('sendEvent("io.pixx.csxs.events.showInfo", "' + message + '")');
-  }
-
-  export function loadJSX(scriptName) {
+  export const loadJSX = (scriptName) => {
     var extensionRoot = $csInterface.getSystemPath(SystemPath.EXTENSION) + "/client/public/libs";
     runJsx('$.evalFile("' + extensionRoot + "/" + scriptName + '")').then().catch();
-  }
+  };
 
-  export async function runJsx(command) {
+  export const runJsx = async (command) => {
     return new Promise((resolve, reject) => {
       $csInterface.evalScript(command, (evalScriptReturnValueString) => {
         const evalScriptReturnValue = isJson(evalScriptReturnValueString) ? JSON.parse(evalScriptReturnValueString) : evalScriptReturnValueString;
@@ -43,9 +39,9 @@
         }
       });
     });
-  }
+  };
 
-  export async function download(remoteUrl, localFilePath) {
+  export const download = async (remoteUrl, localFilePath) => {
     const protocol = getProtocol(remoteUrl);
     let totalSizeToDownload = 0;
     let currentDownloadedSize = 0;
@@ -109,9 +105,9 @@
 
       request.end();
     });
-  }
+  };
 
-  export async function uploadFile(activeUploadOptionName) {
+  export const uploadFile = async (activeUploadOptionName) => {
     return new Promise((resolve, reject) => {
       updateDownloadProgress('pending');
       runJsx('saveCurrentDocument()').then(() => {
@@ -153,13 +149,13 @@
         updateDownloadProgress(0);
       });
     });
-  }
+  };
 
-  export function updateDownloadProgress(progress) {
+  export const updateDownloadProgress = (progress) => {
     runJsx('sendEvent("io.pixx.csxs.events.updateDownloadProgress", "' + progress + '")');
-  }
+  };
 
-  export function getLinkedFileIDs(relinkOptionName) {
+  export const getLinkedFileIDs = (relinkOptionName) => {
     return new Promise(async (resolve, reject) => {
       if (relinkOptionName === 'selectedLinks') {
         runJsx('getSelectedLinksFileIDs()').then((selectedFileIDs) => {
@@ -172,9 +168,9 @@
         }).catch((error) => reject(error));
       }
     });
-  }
+  };
 
-  export function getFileByID(fileID) {
+  export const getFileByID = (fileID) => {
     return new Promise(async (resolve, reject) => {
       $pixxio.getFileById(fileID).then((file) => {
         resolve(file);
@@ -183,9 +179,9 @@
         reject();
       });
     });
-  }
+  };
 
-  export function waitForLinkSize(fileID, fileSizeToReach) {
+  export const waitForLinkSize = (fileID, fileSizeToReach) => {
     return new Promise(async (resolve, reject) => {
       updateDownloadProgress('pending');
 
@@ -212,5 +208,5 @@
       };
       waitForLinkSizeInterval();
     });
-  }
+  };
 </script>

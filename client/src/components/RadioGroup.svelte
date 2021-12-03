@@ -50,10 +50,10 @@
           background-color: var(--background-color-inactive);
           display: inline-block;
           visibility: visible;
-          border: 4px solid var(--color);
+          border: 3px solid #fff;
           width: var(--size);
           height: var(--size);
-          border-radius: 50%;
+          border-radius: 6px;
           box-sizing: border-box;
         }
 

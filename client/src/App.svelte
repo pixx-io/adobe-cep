@@ -1,7 +1,4 @@
 <script>
-  const fs = cep_node.require('fs');
-
-
   import { onMount } from "svelte";
   import { csInterface, pixxio } from "./stores/general.js";
 
@@ -9,7 +6,7 @@
   import "@pixx.io/jsdk/build/pixxio.jsdk.css";
   import PIXXIO from "@pixx.io/jsdk";
 
-  // components
+  // COMPONENTS
   import Helper from "./Helper.svelte";
   import ThemeManager from "./ThemeManager.svelte";
   import Tabs from "./components/Tabs.svelte";
@@ -25,14 +22,16 @@
   let applicationName = null;
   let downloadProgressInPercent = 0;
 
+  // TABS CONFIG
   const mainTabs = [
-    { name: "openFile", label: "Open document" },
-    { name: "placeFile", label: "Place file" },
-    { name: "uploadFile", label: "Upload file" },
-    { name: "relink", label: "L" }
+    { name: "openFile", label: "Open document", class: "pixxio_media" },
+    { name: "placeFile", label: "Place file", class: "pixxio_plus_circle" },
+    { name: "uploadFile", label: "Upload file", class: "pixxio_upload_cloud_outline" },
+    { name: "relink", label: "Relink file", class: "pixxio_vertical_dots" }
   ];
   let activeMainTabName = mainTabs[0].name;
 
+  // UPLOAD OPTIONS CONFIG
   const allUploadOptions = [
     { name: 'uploadNewFile', label: "New file" },
     { name: 'versionizeFile', label: "New version" },
@@ -41,6 +40,7 @@
   let uploadOptions = allUploadOptions;
   let activeUploadOptionName = uploadOptions[0].name;
 
+  // RELINK OPTIONS CONFIG
   const relinkOptions = [
     { name: 'allUpdatedLinks', label: "All updated links" },
     { name: 'selectedLinks', label: "Selected links" },
@@ -48,7 +48,7 @@
   ];
   let activeRelinkOptionName = relinkOptions[0].name;
 
-  // variable changes
+  // VARIABLE CHANGES
   $: if (activeMainTabName) {
     onChangeTab(activeMainTabName);
   }
@@ -66,7 +66,7 @@
     });
   });
 
-  function initPixxioJSDK() {
+  const initPixxioJSDK = () => {
     pixxio.set(new PIXXIO({
       appKey: "70aK0pH090EyxHgS1sSg3Po8M",
       element: document.getElementById("pixxioWrapper"),
@@ -76,9 +76,9 @@
     $pixxio.on('authState', function(authState) {
       userIsAuthenticated = authState.login;
     });
-  }
+  };
 
-  function onChangeTab(activeTabName) {
+  const onChangeTab = (activeTabName) => {
     switch(activeTabName) {
       case 'openFile':
       case 'placeFile':
@@ -90,9 +90,9 @@
         updateUploadOptions();
         break;
     }
-  }
+  };
 
-  function getMedia(tabName) {
+  const getMedia = (tabName) => {
     let allowTypes = null;
     if (tabName === "openFile") {
       allowTypes = ["indd"];
@@ -118,9 +118,9 @@
         console.log('getMedia error: ', error);
       }
     });
-  }
+  };
 
-  function openDocument(selectedFile) {
+  const openDocument = (selectedFile) => {
     const remoteFilePath = selectedFile.url;
     const localFilePath = appDataFolder + "/" + selectedFile.file.fileName;
     helperComponent.download(remoteFilePath, localFilePath).then((downloadInfo) => {
@@ -128,9 +128,9 @@
     }).catch((error) => {
       showError('openDocument download error: ' + error);
     });
-  }
+  };
 
-  function placeImage(selectedFile) {
+  const placeImage = (selectedFile) => {
     helperComponent.runJsx("hasOpenDocument()").then((hasOpenDocument) => {
       if (hasOpenDocument) {
         const remoteFilePath = selectedFile.url;
@@ -144,13 +144,13 @@
         showError('You have to open a document first');
       }
     });
-  }
+  };
 
-  function updateProgressBar(progressInPercent) {
+  const updateProgressBar = (progressInPercent) => {
     downloadProgressInPercent = progressInPercent;
-  }
+  };
 
-  function updateUploadOptions() {
+  const updateUploadOptions = () => {
     Promise.all([
       helperComponent.runJsx('isPixxioDocument()'),
       helperComponent.runJsx('hasOpenDocument()')
@@ -172,38 +172,38 @@
         uploadOptions = [];
       }
     });
-  }
+  };
 
-  function uploadFile() {
+  const uploadFile = () => {
     helperComponent.uploadFile(activeUploadOptionName).then(() => {
       showInfo('Upload complete');
     });
-  }
+  };
 
-  function showInfo(message) {
+  const showInfo = (message) => {
     infoMessage = message;
-  }
+  };
 
-  function showError(message) {
+  const showError = (message) => {
     errorMessage = message;
-  }
+  };
 
-  function initApplicationName() {
+  const initApplicationName = () => {
     return new Promise((resolve, reject) => {
       helperComponent.runJsx('getApplicationName()').then((name) => {
         applicationName = name;
         resolve(applicationName);
       });
     });
-  }
+  };
 
-  function initFileSystemStructure() {
+  const initFileSystemStructure = () => {
     helperComponent.runJsx('getFileDirectory()').then((fileDirectory) => {
       appDataFolder = fileDirectory;
     });
-  }
+  };
 
-  function initEventListeners() {
+  const initEventListeners = () => {
     /*
     *  Adobe Events
     */
@@ -234,19 +234,18 @@
     $csInterface.addEventListener('io.pixx.csxs.events.showInfo', function (evt) {
       showInfo(evt.data === 'empty' ? null : evt.data);
     });
-  }
+  };
 
-  function syncLinks() {
+  const syncLinks = () => {
     helperComponent.runJsx('saveCurrentDocument()').then(() => {
       helperComponent.getLinkedFileIDs(activeRelinkOptionName).then((fileIDs) => {
         if (fileIDs.length) {
           $pixxio.bulkMainVersionCheck(fileIDs).then((bulkMainVersionResponse) => {
-            let fileIDsToRelink = [];
             if (activeRelinkOptionName === 'allUpdatedLinks') {
-              fileIDsToRelink = bulkMainVersionResponse.filter((file) => !file.isMainVersion).map((file) => file.id);
-            } else {
-              fileIDsToRelink = bulkMainVersionResponse.map((file) => file.id);
+              bulkMainVersionResponse = bulkMainVersionResponse.filter((file) => !file.isMainVersion);
             }
+
+            const fileIDsToRelink = bulkMainVersionResponse.map((file) => file.id);
 
             if (fileIDsToRelink.length) {
               downloadNewVersionOfFilesByIdSync(fileIDsToRelink).then((newVersions) => {
@@ -267,9 +266,9 @@
         }
       });
     });
-  }
+  };
 
-  function downloadNewVersionOfFilesByIdSync(fileIDs) {
+  const downloadNewVersionOfFilesByIdSync = (fileIDs) => {
     return new Promise(async (resolve, reject) => {
       updateProgressBar('pending');
 
@@ -322,9 +321,9 @@
       };
       loopThroughFileIDs(0);
     });
-  }
+  };
 
-  function reLinkNewVersionsSync(newVersions) {
+  const reLinkNewVersionsSync = (newVersions) => {
     return new Promise(async (resolve, reject) => {
       updateProgressBar('pending');
 
@@ -371,7 +370,7 @@
       }
       loopThroughNewVersionsToRelink(0);
     });
-  }
+  };
 </script>
 
 <main>
@@ -414,8 +413,10 @@
   {#if infoMessage}
     <div class="backdrop">
       <div class="notice infoOverlay">
-        <span>{infoMessage}</span>
-        <button on:click="{e => infoMessage = null}">x</button>
+        <span class="message">{infoMessage}</span>
+        <button on:click="{e => infoMessage = null}">
+          <span class="material-icons">close</span>
+        </button>
       </div>
     </div>
   {/if}
@@ -425,7 +426,7 @@
     <div class="backdrop">
       <div class="notice errorOverlay">
         <span>{errorMessage}</span>
-        <button on:click="{e => errorMessage = null}">x</button>
+        <button on:click="{e => errorMessage = null}">X</button>
       </div>
     </div>
   {/if}
@@ -454,19 +455,21 @@
 
   .notice {
     position: absolute;
-    top: 50px;
+    top: 65px;
     right: 10px;
     left: 10px;
     padding: 15px;
     border-radius: 6px;
     font-size: 14px;
     background-color: var(--highlight-color);
+    box-shadow: rgb(0 0 0 / 20%) 0px 1px 3px;
     transition: 0.3s;
     word-break: break-word;
     display: flex;
     flex-direction: row;
+    align-items: center;
 
-    span {
+    .message {
       flex: 1;
     }
 
@@ -474,6 +477,11 @@
       background-color: transparent;
       border: none;
       color: inherit;
+      cursor: pointer;
+
+      .material-icons {
+        font-size: 18px;
+      }
     }
   }
 
