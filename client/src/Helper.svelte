@@ -155,6 +155,19 @@
     runJsx('sendEvent("io.pixx.csxs.events.updateDownloadProgress", "' + progress + '")');
   };
 
+  export const fileExists = (localFilePath) => {
+    return fs.existsSync(localFilePath);
+  };
+
+  export const getFileSize = (localFilePath) => {
+    if (fileExists(localFilePath)) {
+      var stats = fs.statSync(localFilePath);
+      return stats.size;
+    } else {
+      return 0;
+    }
+  };
+
   export const getLinkedFileIDs = (relinkOptionName) => {
     return new Promise(async (resolve, reject) => {
       if (relinkOptionName === 'selectedLinks') {
@@ -181,6 +194,21 @@
     });
   };
 
+  export const getLinkInfo = (fileID) => {
+    return new Promise(async (resolve, reject) => {
+      runJsx('getLinkInfo("' + fileID + '")').then((linkInfo) => {
+        resolve(linkInfo);
+      });
+    });
+  }
+
+  export const deleteLocalFile = (localFilePath) => {
+    if (fs.existsSync(localFilePath)) {
+      fs.unlinkSync(localFilePath);
+    }
+    return;
+  }
+
   export const waitForLinkSize = (fileID, fileSizeToReach) => {
     return new Promise(async (resolve, reject) => {
       updateDownloadProgress('pending');
@@ -188,18 +216,19 @@
       const maxSafetyCount = 30;
       let safetyCount = 0;
       const waitForLinkSizeInterval = () => {
-        runJsx('getLinkSize("' + fileID + '")').then((sizes) => {
-          let uniqueSizes = [...new Set(sizes)];
-          console.log('waitForLinkSizeInterval...', uniqueSizes[0] + ' / ' + fileSizeToReach);
-          if (uniqueSizes.length === 0 || (uniqueSizes.length === 1 && uniqueSizes[0] === fileSizeToReach)) {
+        getLinkInfo(fileID).then((linkInfo) => {
+          const linkSizes = linkInfo.map(info => info.linkSize);
+          let uniqueLinkSizes = [...new Set(linkSizes)];
+
+          if (uniqueLinkSizes.length === 0 || (uniqueLinkSizes.length === 1 && uniqueLinkSizes[0] === fileSizeToReach)) {
             setTimeout(() => {  // safety timeout
               resolve();
-            }, 500);
+            }, 1000);
           } else if(safetyCount === maxSafetyCount) {
             console.error('waitForLinkSize safetyCount reached: ', fileID, fileSizeToReach);
             reject();
           } else {
-            setTimeout(() => {
+            setTimeout(() => {  // loop timeout
               safetyCount++;
               waitForLinkSizeInterval();
             }, 1000);

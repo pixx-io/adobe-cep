@@ -1,6 +1,7 @@
 <ExtensionList>
-    <Extension Id="io.pixx.indesign-v2.panel">
+    <Extension Id="io.pixx.adobe.panel">
         <HostList>
+            <Host Name="PHXS" Port="8088"/>
             <Host Name="IDSN" Port="8089"/>
         </HostList>
     </Extension>

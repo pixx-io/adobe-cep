@@ -13,6 +13,11 @@
   import ProgressBar from "./components/ProgressBar.svelte";
   import RadioGroup from "./components/RadioGroup.svelte";
 
+  const applicationNames = {
+    INDESIGN: 'Adobe InDesign',
+    PHOTOSHOP: 'Adobe Photoshop'
+  };
+
   let themeManagerComponent;
   let helperComponent;
   let userIsAuthenticated = false;
@@ -23,11 +28,11 @@
   let downloadProgressInPercent = 0;
 
   // TABS CONFIG
-  const mainTabs = [
-    { name: "openFile", label: "Open document", class: "pixxio_media" },
-    { name: "placeFile", label: "Place file", class: "pixxio_plus_circle" },
-    { name: "uploadFile", label: "Upload file", class: "pixxio_upload_cloud_outline" },
-    { name: "relink", label: "Relink file", class: "pixxio_vertical_dots" }
+  let mainTabs = [
+    { name: "openFile", label: "Open document", class: "pixxio_media", availableForApplication: [applicationNames.INDESIGN, applicationNames.PHOTOSHOP] },
+    { name: "placeFile", label: "Place file", class: "pixxio_plus_circle", availableForApplication: [applicationNames.INDESIGN, applicationNames.PHOTOSHOP] },
+    { name: "uploadFile", label: "Upload file", class: "pixxio_upload_cloud_outline", availableForApplication: [applicationNames.INDESIGN, applicationNames.PHOTOSHOP] },
+    { name: "relink", label: "Relink file", class: "pixxio_vertical_dots", availableForApplication: [applicationNames.INDESIGN] }
   ];
   let activeMainTabName = mainTabs[0].name;
 
@@ -57,10 +62,10 @@
     initEventListeners();
     helperComponent.loadJSX('json2.js');
     initApplicationName().then(() => {
+      updateAvailableTabs();
       themeManagerComponent.init();
       initFileSystemStructure();
       initPixxioJSDK();
-      
       getMedia(activeMainTabName);
       updateUploadOptions();
     });
@@ -92,12 +97,25 @@
     }
   };
 
+  const updateAvailableTabs = () => {
+    mainTabs = mainTabs.filter(tab => tab.availableForApplication.includes(applicationName));
+  };
+
   const getMedia = (tabName) => {
     let allowTypes = null;
-    if (tabName === "openFile") {
-      allowTypes = ["indd"];
-    } else if (tabName === "placeFile") {
-      allowTypes = ["jpg", "png"];
+
+    if (applicationName === applicationNames.INDESIGN) {
+      if (tabName === "openFile") {
+        allowTypes = ['indd'];
+      } else if (tabName === "placeFile") {
+        allowTypes = ['indd', 'jpg','jpeg','png', 'psd', 'tif', 'tiff', 'ai', 'eps', 'pdf'];
+      }
+    } else if (applicationName === applicationNames.PHOTOSHOP) {
+      if (tabName === "openFile") {
+        allowTypes = ['psd','tif','tiff','eps','gif','jpeg','jpg','png','png00','png8','png24','png32','png48','png64'];
+      } else if (tabName === "placeFile") {
+        allowTypes = ['jpeg','jpg','png','png00','png8','png24','png32','png48','png64'];
+      }
     }
 
     $pixxio.getMedia({
@@ -236,31 +254,66 @@
     });
   };
 
+  const getFilesToUpdate = (bulkMainVersionResponse) => {
+    return new Promise(async (resolve, reject) => {
+      let filesToUpdate = [];
+  
+      const loopThroughBulkMainVersionReponse = (loopIndex) => {
+        const nextStep = () => {
+          loopIndex++;
+          loopThroughBulkMainVersionReponse(loopIndex);
+        };
+
+        const file = bulkMainVersionResponse[loopIndex];
+        if (file) {
+          helperComponent.getLinkInfo(file.id).then((linkInfo) => {
+            filesToUpdate.push({
+              ...file,
+              linkedFileName: linkInfo.length ? linkInfo[0].linkedFileName : null,
+              linkedFilePath: linkInfo.length ? linkInfo[0].linkedFilePath : null
+            });
+            nextStep();
+          });
+        } else {
+          if (activeRelinkOptionName === 'allUpdatedLinks') { // only use the files where isMainVersion is false or the fileName changed (e.g. file was replaced)
+            filesToUpdate = filesToUpdate.filter((fileToUpdate) => {
+              if (!fileToUpdate.isMainVersion || fileToUpdate.linkedFileName !== fileToUpdate.mainVersionFileName) {
+                return true;
+              }
+            });
+          }
+          
+          resolve(filesToUpdate);
+        }
+      };
+      loopThroughBulkMainVersionReponse(0);
+    });
+  };
+
   const syncLinks = () => {
     helperComponent.runJsx('saveCurrentDocument()').then(() => {
       helperComponent.getLinkedFileIDs(activeRelinkOptionName).then((fileIDs) => {
         if (fileIDs.length) {
           $pixxio.bulkMainVersionCheck(fileIDs).then((bulkMainVersionResponse) => {
-            console.log('bulkMainVersionResponse: ', bulkMainVersionResponse);
-            if (activeRelinkOptionName === 'allUpdatedLinks') {
-              bulkMainVersionResponse = bulkMainVersionResponse.filter((file) => !file.isMainVersion);
-            }
+            getFilesToUpdate(bulkMainVersionResponse).then((filesToUpdate) => {
+              console.log('filesToUpdate: ', filesToUpdate);
 
-            const fileIDsToRelink = bulkMainVersionResponse.map((file) => file.id);
+              if (filesToUpdate.length) {
+                downloadNewVersionOfFiles(filesToUpdate).then((newVersions) => {
+                  console.log('SYNC DOWNLOAD DONE: ', newVersions);
 
-            if (fileIDsToRelink.length) {
-              downloadNewVersionOfFiles(bulkMainVersionResponse).then((newVersions) => {
-                console.log('SYNC DOWNLOAD DONE: ', newVersions);
+                  updateProgressBar('pending');
 
-                reLinkNewVersions(newVersions).then(() => {
-                  console.log('SYNC RELINK DONE');
+                  reLinkNewVersions(newVersions).then(() => {
+                    console.log('SYNC RELINK DONE');
+                  });
                 });
-              });
-            } else {
-              if (activeRelinkOptionName === 'allUpdatedLinks') {
-                showInfo('No updated links available.');
+              } else {
+                if (activeRelinkOptionName === 'allUpdatedLinks') {
+                  showInfo('No updated links available.');
+                }
               }
-            }
+            });
           });
         } else {
           showInfo('No pixx.io links selected. Select a pixx.io link and try again.');
@@ -269,29 +322,28 @@
     });
   };
 
-  const downloadNewVersionOfFiles = (bulkMainVersionResponse) => {
+  const downloadNewVersionOfFiles = (filesToUpdate) => {
     return new Promise(async (resolve, reject) => {
       updateProgressBar('pending');
 
       const newVersions = [];
 
       const loopThroughFileIDs = (loopIndex) => {
-        const fileInfo = bulkMainVersionResponse[loopIndex];
-        if (fileInfo) {
+        const fileToUpdate = filesToUpdate[loopIndex];
+        if (fileToUpdate) {
           const nextStep = () => {
             loopIndex++;
             loopThroughFileIDs(loopIndex);
           };
           
-          showInfo('Download: ' + (loopIndex + 1) + ' / ' + bulkMainVersionResponse.length);
+          showInfo('Download: ' + (loopIndex + 1) + ' / ' + filesToUpdate.length);
 
-          const remoteFilePath = fileInfo.originalFileURL;
-          const localFileName = fileInfo.fileName;
+          const remoteFilePath = fileToUpdate.mainVersionOriginalFileURL;
+          const localFileName = fileToUpdate.mainVersionFileName;
           const localFilePath = appDataFolder + "/" + localFileName;
           helperComponent.download(remoteFilePath, localFilePath).then((downloadInfo) => {
             newVersions.push({
-              oldID: fileInfo.id,
-              newID: fileInfo.mainVersion,
+              ...fileToUpdate,
               localFilePath: localFilePath,
               fileSize: downloadInfo.size
             });
@@ -317,38 +369,36 @@
       const loopThroughNewVersionsToRelink = (loopIndex) => {
         const newVersion = newVersions[loopIndex];
         if (newVersion) {
-          console.log('=> loopThroughNewVersionsToRelink: ', newVersion.newID, newVersion.fileSize, newVersion.localFilePath);
+          console.log('loopThroughNewVersionsToRelink...: ', newVersion);
 
           const nextStep = () => {
             loopIndex++;
             loopThroughNewVersionsToRelink(loopIndex);
           };
+
+          const reLink = () => {
+            helperComponent.runJsx('reLink("' + newVersion.id + '", "' + newVersion.mainVersion + '", "' + encodeURI(newVersion.localFilePath) + '")').then(() => {
+              console.log('=> reLink complete');
+              nextStep();
+            }).catch((error) => {
+              console.error('=> reLink failed; ', newVersion);
+              nextStep();
+            });
+          };
           
           showInfo('Relink: ' + (loopIndex + 1) + ' / ' + newVersions.length);
 
-          helperComponent.waitForLinkSize(newVersion.newID, newVersion.fileSize).then(() => {
-            console.log('link ready');
-            if (newVersion.oldID !== newVersion.newID) {
-              helperComponent.runJsx('reLink("' + newVersion.oldID + '", "' + newVersion.newID + '", "' + encodeURI(newVersion.localFilePath) + '", "' + newVersion.size + '")').then(() => {
-                console.log('reLink complete');
-                nextStep();
-              }).catch((error) => {
-                console.error('reLink failed; ', newVersion);
-                nextStep();
-              });
-            } else {
-              helperComponent.runJsx('updateLink("' + newVersion.newID + '")').then(() => {
-                console.log('updateLink complete');
-                nextStep();
-              }).catch((error) => {
-                console.error('updateLink failed: ', newVersion);
-                nextStep();
-              });
-            }
-          }).catch(() => {
-            console.warn('waitForLinkSize aborted, continue with next file: ', newVersion);
-            nextStep();
-          });
+          if (newVersion.linkedFilePath !== newVersion.localFilePath) {  // local filePath changed
+            helperComponent.deleteLocalFile(newVersion.linkedFilePath);
+            reLink();
+          } else {
+            helperComponent.waitForLinkSize(newVersion.mainVersion, newVersion.fileSize).then(() => {
+              reLink();
+            }).catch(() => {
+              console.warn('waitForLinkSize aborted, continue with next file: ', newVersion);
+              nextStep();
+            });
+          }
         } else {
           updateProgressBar(0);
           showInfo(null);
