@@ -1,4 +1,11 @@
-const applicationNames = {
+/*
+ * ATTENTION! ALWAYS DEFINE VARIABLES WITH "var", NEVER "const" or "let"!
+ * There seems to be a problem with "const" and "let" for variable-definitions.
+ * If you define a variable any other than "var" the whole script is corrupted
+ * and always returns "EvalScript Error." (wut?! O.o)
+ */
+
+var applicationNames = {
   INDESIGN: 'Adobe InDesign'
 };
 
@@ -14,132 +21,255 @@ function consoleLog(message) {
   sendEvent('io.pixx.csxs.events.consoleLog', message);
 }
 
-function isPixxioDocument() {
-  if (hasOpenDocument()) {
-    return app.activeDocument.extractLabel('pixxio.fileID');
-  } else {
-    return;
-  }
+function sendError(message) {
+  sendEvent('io.pixx.csxs.events.showError', message);
 }
 
-function getLinkFileIDs() {
-  const fileIDs = [];
-
-  if (isPixxioDocument()) {
-    const allLinks = app.activeDocument.links;
-    for (var linkIndex = 0; linkIndex < allLinks.length; linkIndex++) {
-      var fileID = allLinks[linkIndex].extractLabel('pixxio.fileID');
-      if (fileID) {
-        fileIDs.push(fileID);
-      }
-    }
-  }
-  return JSON.stringify(fileIDs);
+function sendInfo(message) {
+  sendEvent('io.pixx.csxs.events.showInfo', message);
 }
 
-function placeFile(localFilePath, remoteFilePath, fileName, fileID) {
-  const file = new File(localFilePath);
-  app.activeDocument.place(file, true);
-
-  if (getApplicationName() === applicationNames.INDESIGN) {
-    const link = app.activeDocument.links.lastItem();
-    link.insertLabel('pixxio.remoteUrl', remoteFilePath);
-    link.insertLabel('pixxio.fileName', fileName);
-    link.insertLabel('pixxio.fileID', fileID);
-  }
-}
-
-function openDocument(localFilePath, remoteFilePath, fileName, fileID) {
-  var file = new File(localFilePath);
-  app.open(file);
-
-  if (getApplicationName() === applicationNames.INDESIGN) {
-    const activeDocument = app.activeDocument;
-    activeDocument.insertLabel('pixxio.remoteUrl', remoteFilePath);
-    activeDocument.insertLabel('pixxio.fileName', fileName);
-    activeDocument.insertLabel('pixxio.fileID', fileID);
+function normalizeLocalPath(localPath) {
+  try {
+    return localPath.split('\\').join('/');
+  } catch (e) {
+    sendError('normalizeLocalPath error: ' + e.message + ' (' + localPath + ')');
+    return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
 
 function hasOpenDocument() {
-  return !!app.documents.length && !!app.activeDocument;
+  try {
+    return !!app.documents.length && !!app.activeDocument;
+  } catch (e) {
+    sendError('hasOpenDocument error: ' + e.message);
+    return JSON.stringify({ success: false, errorMessage: e.message });
+  }
 }
 
 function getApplicationName() {
-  return app.name;
+  try {
+    return app.name;
+  } catch (e) {
+    sendError('getApplicationName error: ' + e.message);
+    return JSON.stringify({ success: false, errorMessage: e.message });
+  }
 }
 
-/*
-function closeProgressBar() {
-  sendEvent('io.pixx.attachment_browser.close_progress_bar');
+function isPixxioDocument() {
+  try {
+    if (hasOpenDocument()) {
+      return app.activeDocument.extractLabel('pixxio.fileID');
+    } else {
+      return false;
+    }
+  } catch (e) {
+    sendError('isPixxioDocument error: ' + e.message);
+    return JSON.stringify({ success: false, errorMessage: e.message });
+  }
 }
 
-function syncAttachment(attachment_url, filename, item_id) {
-  // CEP 5 has a bug with sending JSON or JSON.stringify(data) through events
-  // So for now we have to do this crap because we can only send a simple string
-  //var data = attachment_url + 'SUPEROBVIOUSSPLITPOINT' + filename + 'SUPEROBVIOUSSPLITPOINT' + item_id;
-  const data = JSON.stringify({
-      attachment_url,
-      filename,
-      item_id
-  });
-  sendEvent('io.pixx.attachment_browser.sync_attachment', data);
+function insertLabelToElement(labelName, labelValue, element) {
+  try {
+    if (!element) {
+      element = app.activeDocument;
+    }
+    element.insertLabel(labelName, labelValue);
+  } catch (e) {
+    sendError('insertLabelToElement error: ' + e.message + ' (' + labelName + ': ' + labelValue + ')');
+    return JSON.stringify({ success: false, errorMessage: e.message });
+  }
 }
 
-function hasOpenDocument() {
-  var open_document = !!app.documents.length && !!app.activeDocument;
-  return escape(open_document);
+function placeFile(localFilePath, fileID) {
+  try {
+    var file = new File(localFilePath);
+    app.activeDocument.place(file, true);
+
+    if (getApplicationName() === applicationNames.INDESIGN) {
+      var link = app.activeDocument.links.lastItem();
+      insertLabelToElement('pixxio.fileID', fileID, link);
+    }
+    saveCurrentDocument();
+  } catch (e) {
+    sendError('placeFile error: ' + e.message + ' (' + localFilePath + ')');
+    return JSON.stringify({ success: false, errorMessage: e.message });
+  }
+}
+
+function openDocument(localFilePath, fileID) {
+  try {
+    var file = new File(localFilePath);
+    app.open(file);
+
+    if (getApplicationName() === applicationNames.INDESIGN) {
+      insertLabelToElement('pixxio.fileID', fileID);
+
+      saveCurrentDocument();
+    }
+  } catch (e) {
+    sendError('openDocument error: ' + e.message + ' (' + localFilePath + ')');
+    return JSON.stringify({ success: false, errorMessage: e.message });
+  }
+}
+
+function saveCurrentDocument() {
+  try {
+    app.activeDocument.save();
+  } catch (e) {
+    sendError('saveCurrentDocument error: ' + e.message);
+    return JSON.stringify({ success: false, errorMessage: e.message });
+  }
 }
 
 function getFileDirectory() {
-  // $USER/Library/Application Support/pixx.io/AdobeExtension/cache
-  var folderName = Folder.userData.fsName + '/pixx.io/AdobeExtension/cache';
-  folderName     = folderName.split('\\').join('/');
-  Folder(folderName).create();
-  return folderName;
+  try {
+    var folderName = normalizeLocalPath(Folder.userData.fsName) + '/pixx.io/AdobeExtension/cache';
+    Folder(folderName).create();
+    return folderName;
+  } catch (e) {
+    sendError('getFileDirectory error: ' + e.message);
+    return JSON.stringify({ success: false, errorMessage: e.message });
+  }
 }
 
-function locateFile(filename) {
-  var filepath = getFileDirectory() + '/' + filename;
-  return new File(filepath);
+function getCurrentDocumentInformation() {
+  try {
+    var activeDocument = app.activeDocument;
+    if (!activeDocument) {
+      return false;
+    }
+
+    var labels = {
+      fileID: activeDocument.extractLabel('pixxio.fileID'),
+      fileName: activeDocument.extractLabel('pixxio.fileName')
+    };
+
+    var currentDocumentInformation = {
+      name: activeDocument.name,
+      directory: normalizeLocalPath(activeDocument.filePath.fsName),
+      labels: labels
+    };
+
+    return JSON.stringify(currentDocumentInformation);
+  } catch (e) {
+    sendError('getCurrentDocumentInformation error: ' + e.message);
+    return JSON.stringify({ success: false, errorMessage: e.message });
+  }
 }
 
-function placeFile(attachment_url, filename) {
-  var file  = locateFile(filename);
-  var image = app.activeWindow.activePage.place(file)[0];
-  var link  = image.itemLink;
-  link.insertLabel('pixxio.url', attachment_url);
-  link.insertLabel('pixxio.filename', filename);
-  closeProgressBar();
-}
+function getAllLinksFileIDs() {
+  try {
+    var fileIDs = [];
 
-function syncFiles() {
-  if (!!app.activeDocument) {
-    var attachment_url, filename;
-    enumerateLinks(app.activeDocument.links, function(link) {
-      if(isLinked(link)) {
-        attachment_url = link.extractLabel('pixxio.url');
-        filename = link.extractLabel('pixxio.filename');
-        syncAttachment(attachment_url, filename, link.id);
+    var allLinks = app.activeDocument.links;
+    for (var linkIndex = 0; linkIndex < allLinks.length; linkIndex++) {
+      var fileID = allLinks[linkIndex].extractLabel('pixxio.fileID');
+      if (fileID) {
+        fileIDs.push(parseInt(fileID));
       }
-    })
+    }
+
+    return JSON.stringify(removeDuplicatesFromArray(fileIDs));
+  } catch (e) {
+    sendError('getAllLinksFileIDs error: ' + e.message);
+    return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
 
-function enumerateLinks(links, callback) {
-  for (var linkIndex = 0; linkIndex < links.length; ++linkIndex) {
-    callback(links[linkIndex]);
+function getSelectedLinksFileIDs() {
+  try {
+    var selectedFileIDs = [];
+
+    var documentSelection = app.activeDocument.selection;
+    for (var selectionIndex = 0; selectionIndex < documentSelection.length; selectionIndex++) {
+      var selection = documentSelection[selectionIndex];
+      var selectionName = selection.constructor.name;
+      
+      var itemLink = null;
+      
+      if (selectionName == 'Rectangle') {
+        var selectionGraphics = selection.allGraphics;
+        if (selectionGraphics.length > 0) {
+          itemLink = selectionGraphics[0].itemLink;
+        }
+      } else if (selectionName == 'Image') {
+        itemLink = selection.itemLink;
+      }
+
+      if (itemLink) {
+        var fileID = itemLink.extractLabel('pixxio.fileID');
+        if (fileID) {
+          selectedFileIDs.push(parseInt(fileID));
+        }
+      }
+    }
+
+    return JSON.stringify(removeDuplicatesFromArray(selectedFileIDs));
+  } catch (e) {
+    sendError('getSelectedLinksFileIDs error: ' + e.message);
+    return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
 
-function isLinked(link) {
-  return !!link.extractLabel('pixxio.url');
+function removeDuplicatesFromArray(array) {
+  try {
+    var checkedElements = {};
+    var uniqueArray = [];
+
+    for (var i = 0; i < array.length; i++) {
+      if (!(array[i] in checkedElements)) {
+        uniqueArray.push(array[i]);
+        checkedElements[array[i]] = true;
+      }
+    }
+
+    return uniqueArray;
+  } catch (e) {
+    sendError('removeDuplicatesFromArray error: ' + e.message + ' (' + JSON.stringify(array) + ')');
+    return JSON.stringify({ success: false, errorMessage: e.message });
+  }
 }
 
-function relink(link_id, filename) {
-  var file = locateFile(filename);
-  var link = app.activeDocument.links.itemByID(parseInt(link_id));
-  link.relink(file);
-  link.update();
+function reLink(currentFileID, newFileID, localFilePath) {
+  try {
+    for (var i = 0; i < app.activeDocument.links.length; i++) {
+      if (app.activeDocument.links[i].extractLabel('pixxio.fileID') === currentFileID) {
+        app.activeDocument.links[i].relink(new File(localFilePath));
+        insertLabelToElement('pixxio.fileID', newFileID, app.activeDocument.links[i]);
+        app.activeDocument.links[i].update();
+      }
+    }
+  } catch (e) {
+    sendError('reLink error: ' + e.message + ' (currentFileID: ' + currentFileID + ' / newFileID:' + newFileID + ' / localFilePath: ' + localFilePath + ')');
+    return JSON.stringify({ success: false, errorMessage: e.message });
+  }
 }
-*/
+
+function updateLink(fileID) {
+  try {
+    for (var i = 0; i < app.activeDocument.links.length; i++) {
+      if (app.activeDocument.links[i].extractLabel('pixxio.fileID') === fileID) {
+        app.activeDocument.links[i].update();
+      }
+    }
+  } catch (e) {
+    sendError('updateLink error: ' + e.message + ' (' + fileID + ')');
+    return JSON.stringify({ success: false, errorMessage: e.message });
+  }
+}
+
+function getLinkSize(fileID) {
+  try {
+    var sizes = [];
+    for (var i = 0; i < app.activeDocument.links.length; i++) {
+      if (app.activeDocument.links[i].extractLabel('pixxio.fileID') === fileID) {
+        sizes.push(app.activeDocument.links[i].size);
+      }
+    }
+    return JSON.stringify(sizes);
+  } catch (e) {
+    sendError('getLinkSize error: ' + e.message + ' (' + fileID + ')');
+    return JSON.stringify({ success: false, errorMessage: e.message });
+  }
+}

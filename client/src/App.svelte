@@ -1,171 +1,219 @@
 <script>
   import { onMount } from "svelte";
-  import { csInterface } from "./stores/general.js";
+  import { csInterface, pixxio } from "./stores/general.js";
 
   // pixx.io JSDK
   import "@pixx.io/jsdk/build/pixxio.jsdk.css";
   import PIXXIO from "@pixx.io/jsdk";
 
-  // components
+  // COMPONENTS
   import Helper from "./Helper.svelte";
   import ThemeManager from "./ThemeManager.svelte";
   import Tabs from "./components/Tabs.svelte";
   import ProgressBar from "./components/ProgressBar.svelte";
+  import RadioGroup from "./components/RadioGroup.svelte";
 
   let themeManagerComponent;
   let helperComponent;
-  let pixxio;
-  let userIsAuthenticated = true;
+  let userIsAuthenticated = false;
   let errorMessage = null;
-  let userDataPath = null;
+  let infoMessage = null;
   let appDataFolder = null;
   let applicationName = null;
-  let activeMainTabName = null;
-  const mainTabs = [
-    { name: "openFile", label: "Open document" },
-    { name: "placeFile", label: "Place file" },
-    { name: "uploadFile", label: "Upload file" },
-  ];
-  let activeGetMediaPromise = null;
   let downloadProgressInPercent = 0;
 
-  // variable changes
+  // TABS CONFIG
+  const mainTabs = [
+    { name: "openFile", label: "Open document", class: "pixxio_media" },
+    { name: "placeFile", label: "Place file", class: "pixxio_plus_circle" },
+    { name: "uploadFile", label: "Upload file", class: "pixxio_upload_cloud_outline" },
+    { name: "relink", label: "Relink file", class: "pixxio_vertical_dots" }
+  ];
+  let activeMainTabName = mainTabs[0].name;
+
+  // UPLOAD OPTIONS CONFIG
+  const allUploadOptions = [
+    { name: 'uploadNewFile', label: "New file" },
+    { name: 'versionizeFile', label: "New version" },
+    { name: 'replaceFile', label: "Replace current" }
+  ];
+  let uploadOptions = allUploadOptions;
+  let activeUploadOptionName = uploadOptions[0].name;
+
+  // RELINK OPTIONS CONFIG
+  const relinkOptions = [
+    { name: 'allUpdatedLinks', label: "All updated links" },
+    { name: 'selectedLinks', label: "Selected links" },
+    { name: 'allLinks', label: "All links" }
+  ];
+  let activeRelinkOptionName = relinkOptions[0].name;
+
+  // VARIABLE CHANGES
   $: if (activeMainTabName) {
-    if (activeMainTabName === "openFile" || activeMainTabName === "placeFile") {
-      getMedia(activeMainTabName);
-    }
+    onChangeTab(activeMainTabName);
   }
 
   onMount(async () => {
-    initPixxioJSDK();
-    
+    initEventListeners();
     helperComponent.loadJSX('json2.js');
     initApplicationName().then(() => {
-      console.log('applicationName: ', applicationName);
       themeManagerComponent.init();
-      initEventListeners();
       initFileSystemStructure();
-
+      initPixxioJSDK();
+      
+      getMedia(activeMainTabName);
+      updateUploadOptions();
     });
-
-
-    activeMainTabName = "openFile";
   });
 
-  function initPixxioJSDK() {
-    pixxio = new PIXXIO({
+  const initPixxioJSDK = () => {
+    pixxio.set(new PIXXIO({
       appKey: "70aK0pH090EyxHgS1sSg3Po8M",
       element: document.getElementById("pixxioWrapper"),
-      modal: false,
+      modal: false
+    }));
+
+    $pixxio.on('authState', function(authState) {
+      userIsAuthenticated = authState.login;
     });
-  }
+  };
 
-  function getMedia(tabName) {
-    if (activeGetMediaPromise) {
-      activeGetMediaPromise.current = false;
-    }
-
-    let allowedTypes = null;
-    if (tabName === "openFile") {
-      allowedTypes = ["indd"];
-    } else if (tabName === "placeFile") {
-      allowedTypes = ["jpg", "png"];
-    }
-
-    const currentPromise = pixxio.getMedia({
-      max: 1,
-      allowedFormats: ["original"],
-      allowedTypes: allowedTypes,
-      additionalResponseFields: ["id", "fileName"],
-    });
-    currentPromise.current = true;
-
-    activeGetMediaPromise = currentPromise;
-
-    currentPromise.then((value) => {
-      if (currentPromise.current) {
-        if (activeMainTabName === "openFile") {
-            openDocument(value[0]);
-        } else if (activeMainTabName === "placeFile") {
-            placeImage(value[0]);
+  const onChangeTab = (activeTabName) => {
+    switch(activeTabName) {
+      case 'openFile':
+      case 'placeFile':
+        if (pixxio && userIsAuthenticated) {
+          getMedia(activeTabName);
         }
+        break;
+      case 'uploadFile':
+        updateUploadOptions();
+        break;
+    }
+  };
 
-        getMedia(activeMainTabName);
+  const getMedia = (tabName) => {
+    let allowTypes = null;
+    if (tabName === "openFile") {
+      allowTypes = ["indd"];
+    } else if (tabName === "placeFile") {
+      allowTypes = ["jpg", "png"];
+    }
+
+    $pixxio.getMedia({
+      max: 1,
+      allowFormats: ["original"],
+      allowTypes: allowTypes,
+      additionalResponseFields: ["id", "fileName"],
+    }).then((value) => {
+      if (activeMainTabName === "openFile") {
+        openDocument(value[0]);
+      } else if (activeMainTabName === "placeFile") {
+        placeImage(value[0]);
+      }
+
+      getMedia(activeMainTabName);
+    }).catch((error) => {
+      if (error) {
+        console.log('getMedia error: ', error);
       }
     });
-  }
+  };
 
-  function openDocument(selectedFile) {
+  const openDocument = (selectedFile) => {
     const remoteFilePath = selectedFile.url;
-    const localFileName = selectedFile.file.fileName;
-    const localFilePath = appDataFolder + "/" + localFileName;
-    helperComponent.download(remoteFilePath, localFilePath).then(function (downloadInfo) {
-      helperComponent.runJsx('openDocument("' + encodeURI(localFilePath) + '", "' + encodeURI(remoteFilePath) + '", "' + localFileName + '", "' + selectedFile.file.id + '")');
-    }, function (error) {
-      console.log("=> download error: ", error);
-      helperComponent.runJsx('sendEvent("io.pixx.csxs.events.showError", "' + error + '")');
+    const localFilePath = appDataFolder + "/" + selectedFile.file.fileName;
+    helperComponent.download(remoteFilePath, localFilePath).then((downloadInfo) => {
+      helperComponent.runJsx('openDocument("' + encodeURI(localFilePath) + '", "' + selectedFile.file.id + '")');
+    }).catch((error) => {
+      showError('openDocument download error: ' + error);
     });
-  }
+  };
 
-  function placeImage(selectedFile) {
-    helperComponent.runJsx("hasOpenDocument()").then((hasOpenDocumentString) => {
-        const hasOpenDocument = hasOpenDocumentString === "true";
-        if (hasOpenDocument) {
-            const remoteFilePath = selectedFile.url;
-            const localFileName = selectedFile.file.fileName;
-            const localFilePath = appDataFolder + "/" + localFileName;
-            helperComponent.download(remoteFilePath, localFilePath).then(function (downloadInfo) {
-              helperComponent.runJsx('placeFile("' + encodeURI(localFilePath) + '", "' + encodeURI(remoteFilePath) + '", "' + localFileName + '", "' + selectedFile.file.id + '")');
-            }, function (error) {
-              console.log("=> download error: ", error);
-              helperComponent.runJsx('sendEvent("io.pixx.csxs.events.showError", "' + error + '")');
-            });
-        } else {
-          const error = 'You have to open a document first';
-          helperComponent.runJsx('sendEvent("io.pixx.csxs.events.showError", "' + error + '")');
-        }
+  const placeImage = (selectedFile) => {
+    helperComponent.runJsx("hasOpenDocument()").then((hasOpenDocument) => {
+      if (hasOpenDocument) {
+        const remoteFilePath = selectedFile.url;
+        const localFilePath = appDataFolder + "/" + selectedFile.file.fileName;
+        helperComponent.download(remoteFilePath, localFilePath).then((downloadInfo) => {
+          helperComponent.runJsx('placeFile("' + encodeURI(localFilePath) + '", "' + selectedFile.file.id + '")');
+        }).catch((error) => {
+          showError('placeImage download error: ' + error);
+        });
+      } else {
+        showError('You have to open a document first');
+      }
     });
-  }
+  };
 
-  function updateProgressBar(progressInPercent) {
+  const updateProgressBar = (progressInPercent) => {
     downloadProgressInPercent = progressInPercent;
-  }
+  };
 
-  function showError(message) {
-    const defaultMessage = 'An error occured. Please try again later or contact us at support@pixxio.com';
-    errorMessage = message ? message : defaultMessage;
+  const updateUploadOptions = () => {
+    Promise.all([
+      helperComponent.runJsx('isPixxioDocument()'),
+      helperComponent.runJsx('hasOpenDocument()')
+    ]).then((values) => {
+      const fileID = values[0];
+      const hasOpenDocument = values[1];
 
-    setTimeout(() => {
-      errorMessage = null;
-    }, 5000);
-  }
+      if (hasOpenDocument) {
+        if (fileID) {
+          uploadOptions = allUploadOptions;
+        } else {
+          uploadOptions = allUploadOptions.filter((option) => option.name === 'uploadNewFile');
 
-  function initApplicationName() {
+          if (activeUploadOptionName !== uploadOptions[0].name) {
+            activeUploadOptionName = uploadOptions[0].name;
+          }
+        }
+      } else {
+        uploadOptions = [];
+      }
+    });
+  };
+
+  const uploadFile = () => {
+    helperComponent.uploadFile(activeUploadOptionName).then(() => {
+      showInfo('Upload complete');
+    });
+  };
+
+  const showInfo = (message) => {
+    infoMessage = message;
+  };
+
+  const showError = (message) => {
+    errorMessage = message;
+  };
+
+  const initApplicationName = () => {
     return new Promise((resolve, reject) => {
       helperComponent.runJsx('getApplicationName()').then((name) => {
         applicationName = name;
         resolve(applicationName);
       });
     });
-  }
+  };
 
-  function initFileSystemStructure() {
-    userDataPath = $csInterface.getSystemPath(SystemPath.USER_DATA);
-    appDataFolder = userDataPath + '/' + $csInterface.getExtensionID();
-    window.cep.fs.makedir(appDataFolder);
-  }
+  const initFileSystemStructure = () => {
+    helperComponent.runJsx('getFileDirectory()').then((fileDirectory) => {
+      appDataFolder = fileDirectory;
+    });
+  };
 
-  function initEventListeners() {
+  const initEventListeners = () => {
     /*
     *  Adobe Events
     */
-    $csInterface.addEventListener('documentAfterActivate', function (evt) {
-      //updateUploadFileRadios();
+    $csInterface.addEventListener('documentAfterActivate', function () {
+      updateUploadOptions();
       //getLinkedFiles();
     });
     
-    $csInterface.addEventListener('documentAfterDeactivate', function (evt) {
-      //updateUploadFileRadios();
+    $csInterface.addEventListener('documentAfterDeactivate', function () {
+      updateUploadOptions();
     });
 
     /*
@@ -182,7 +230,134 @@
     $csInterface.addEventListener('io.pixx.csxs.events.showError', function (evt) {
       showError(evt.data === 'empty' ? null : evt.data);
     });
-  }
+    
+    $csInterface.addEventListener('io.pixx.csxs.events.showInfo', function (evt) {
+      showInfo(evt.data === 'empty' ? null : evt.data);
+    });
+  };
+
+  const syncLinks = () => {
+    helperComponent.runJsx('saveCurrentDocument()').then(() => {
+      helperComponent.getLinkedFileIDs(activeRelinkOptionName).then((fileIDs) => {
+        if (fileIDs.length) {
+          $pixxio.bulkMainVersionCheck(fileIDs).then((bulkMainVersionResponse) => {
+            console.log('bulkMainVersionResponse: ', bulkMainVersionResponse);
+            if (activeRelinkOptionName === 'allUpdatedLinks') {
+              bulkMainVersionResponse = bulkMainVersionResponse.filter((file) => !file.isMainVersion);
+            }
+
+            const fileIDsToRelink = bulkMainVersionResponse.map((file) => file.id);
+
+            if (fileIDsToRelink.length) {
+              downloadNewVersionOfFiles(bulkMainVersionResponse).then((newVersions) => {
+                console.log('SYNC DOWNLOAD DONE: ', newVersions);
+
+                reLinkNewVersions(newVersions).then(() => {
+                  console.log('SYNC RELINK DONE');
+                });
+              });
+            } else {
+              if (activeRelinkOptionName === 'allUpdatedLinks') {
+                showInfo('No updated links available.');
+              }
+            }
+          });
+        } else {
+          showInfo('No pixx.io links selected. Select a pixx.io link and try again.');
+        }
+      });
+    });
+  };
+
+  const downloadNewVersionOfFiles = (bulkMainVersionResponse) => {
+    return new Promise(async (resolve, reject) => {
+      updateProgressBar('pending');
+
+      const newVersions = [];
+
+      const loopThroughFileIDs = (loopIndex) => {
+        const fileInfo = bulkMainVersionResponse[loopIndex];
+        if (fileInfo) {
+          const nextStep = () => {
+            loopIndex++;
+            loopThroughFileIDs(loopIndex);
+          };
+          
+          showInfo('Download: ' + (loopIndex + 1) + ' / ' + bulkMainVersionResponse.length);
+
+          const remoteFilePath = fileInfo.originalFileURL;
+          const localFileName = fileInfo.fileName;
+          const localFilePath = appDataFolder + "/" + localFileName;
+          helperComponent.download(remoteFilePath, localFilePath).then((downloadInfo) => {
+            newVersions.push({
+              oldID: fileInfo.id,
+              newID: fileInfo.mainVersion,
+              localFilePath: localFilePath,
+              fileSize: downloadInfo.size
+            });
+            nextStep();
+          }, (error) => {
+            showError(error);
+            nextStep();
+          });
+        } else {
+          updateProgressBar(0);
+          showInfo(null);
+          resolve(newVersions);
+        }
+      };
+      loopThroughFileIDs(0);
+    });
+  };
+
+  const reLinkNewVersions = (newVersions) => {
+    return new Promise(async (resolve, reject) => {
+      updateProgressBar('pending');
+
+      const loopThroughNewVersionsToRelink = (loopIndex) => {
+        const newVersion = newVersions[loopIndex];
+        if (newVersion) {
+          console.log('=> loopThroughNewVersionsToRelink: ', newVersion.newID, newVersion.fileSize, newVersion.localFilePath);
+
+          const nextStep = () => {
+            loopIndex++;
+            loopThroughNewVersionsToRelink(loopIndex);
+          };
+          
+          showInfo('Relink: ' + (loopIndex + 1) + ' / ' + newVersions.length);
+
+          helperComponent.waitForLinkSize(newVersion.newID, newVersion.fileSize).then(() => {
+            console.log('link ready');
+            if (newVersion.oldID !== newVersion.newID) {
+              helperComponent.runJsx('reLink("' + newVersion.oldID + '", "' + newVersion.newID + '", "' + encodeURI(newVersion.localFilePath) + '", "' + newVersion.size + '")').then(() => {
+                console.log('reLink complete');
+                nextStep();
+              }).catch((error) => {
+                console.error('reLink failed; ', newVersion);
+                nextStep();
+              });
+            } else {
+              helperComponent.runJsx('updateLink("' + newVersion.newID + '")').then(() => {
+                console.log('updateLink complete');
+                nextStep();
+              }).catch((error) => {
+                console.error('updateLink failed: ', newVersion);
+                nextStep();
+              });
+            }
+          }).catch(() => {
+            console.warn('waitForLinkSize aborted, continue with next file: ', newVersion);
+            nextStep();
+          });
+        } else {
+          updateProgressBar(0);
+          showInfo(null);
+          resolve();
+        }
+      }
+      loopThroughNewVersionsToRelink(0);
+    });
+  };
 </script>
 
 <main>
@@ -196,13 +371,51 @@
   <div class="content">
     <div
       id="pixxioWrapper"
-      style="opacity: {activeMainTabName === 'openFile' || activeMainTabName === 'placeFile' ? 1 : 0}"
-    />
+      style="display: {activeMainTabName === 'openFile' || activeMainTabName === 'placeFile' ? 'flex' : 'none'}"
+    ></div>
+    {#if activeMainTabName === 'uploadFile'}
+      <RadioGroup bind:activeOptionName={activeUploadOptionName} options={uploadOptions}></RadioGroup>
+      <div class="flexSpacer"></div>
+      <button
+        class="button button--action"
+        disabled='{!uploadOptions.length}'
+        on:click="{uploadFile}"
+      >UPLOAD</button>
+    {:else if activeMainTabName === 'relink'}
+      <RadioGroup bind:activeOptionName={activeRelinkOptionName} options={relinkOptions}></RadioGroup>
+      <div class="flexSpacer"></div>
+      <button
+        class="button button--action"
+        on:click="{syncLinks}"
+      >SYNC</button>
+    {/if}
   </div>
+
+  <!-- GLOBAL OVERLAY -->
+  {#if downloadProgressInPercent > 0}
+    <div class="backdrop"></div>
+  {/if}
+
+  <!-- INFO OVERLAY -->
+  {#if infoMessage}
+    <div class="backdrop">
+      <div class="notice infoOverlay">
+        <span class="message">{infoMessage}</span>
+        <button on:click="{e => infoMessage = null}">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+    </div>
+  {/if}
 
   <!-- ERROR OVERLAY -->
   {#if errorMessage}
-    <div id="errorOverlay">{errorMessage}</div>
+    <div class="backdrop">
+      <div class="notice errorOverlay">
+        <span>{errorMessage}</span>
+        <button on:click="{e => errorMessage = null}">X</button>
+      </div>
+    </div>
   {/if}
 </main>
 
@@ -212,20 +425,58 @@
     display: flex;
     flex-direction: column;
     overflow: auto;
+
+    .button--action {
+      align-self: flex-end;
+      margin: 20px;
+    }
   }
 
-  /*
-  * ERROR OVERLAY
-  */
-  #errorOverlay {
+  .backdrop {
     position: absolute;
-    bottom: 15px;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .notice {
+    position: absolute;
+    top: 65px;
     right: 10px;
     left: 10px;
     padding: 15px;
     border-radius: 6px;
     font-size: 14px;
-    background-color: red;
+    background-color: var(--highlight-color);
+    box-shadow: rgb(0 0 0 / 20%) 0px 1px 3px;
     transition: 0.3s;
+    word-break: break-word;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    .message {
+      flex: 1;
+    }
+
+    button {
+      background-color: transparent;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+
+      .material-icons {
+        font-size: 18px;
+      }
+    }
+  }
+
+  .infoOverlay {
+    background-color: var(--highlight-color);
+  }
+
+  .errorOverlay {
+    background-color: red;
   }
 </style>
