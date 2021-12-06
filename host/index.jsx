@@ -6,7 +6,8 @@
  */
 
 var applicationNames = {
-  INDESIGN: 'Adobe InDesign'
+  INDESIGN: 'Adobe InDesign',
+  PHOTOSHOP: 'Adobe Photoshop'
 };
 
 function sendEvent(type, data) {
@@ -259,17 +260,43 @@ function updateLink(fileID) {
   }
 }
 
-function getLinkSize(fileID) {
+function getLinkInfo(fileID) {
   try {
-    var sizes = [];
+    var info = [];
     for (var i = 0; i < app.activeDocument.links.length; i++) {
       if (app.activeDocument.links[i].extractLabel('pixxio.fileID') === fileID) {
-        sizes.push(app.activeDocument.links[i].size);
+        info.push({
+          linkedFilePath: normalizeLocalPath(app.activeDocument.links[i].filePath),
+          linkedFileName: normalizeLocalPath(app.activeDocument.links[i].name),
+          linkSize: app.activeDocument.links[i].size,
+          linkStatus: linkStatusObjectToString(app.activeDocument.links[i].status)
+        });
       }
     }
-    return JSON.stringify(sizes);
+    return JSON.stringify(info);
   } catch (e) {
     sendError('getLinkSize error: ' + e.message + ' (' + fileID + ')');
     return JSON.stringify({ success: false, errorMessage: e.message });
   }
+}
+
+function linkStatusObjectToString(status) {
+  var link_status = 'unknown';
+  if (status == LinkStatus.NORMAL) {
+    link_status = 'NORMAL';
+  }
+  else if (status == LinkStatus.LINK_EMBEDDED) {
+    link_status = 'LINK_EMBEDDED';
+  }
+  else if (status == LinkStatus.LINK_INACCESSIBLE) {
+    link_status = 'LINK_INACCESSIBLE';
+  }
+  else if (status == LinkStatus.LINK_MISSING) {
+    link_status = 'LINK_MISSING';
+  }
+  else if (status == LinkStatus.LINK_OUT_OF_DATE) {
+    link_status = 'LINK_OUT_OF_DATE';
+  }
+
+  return link_status;
 }
