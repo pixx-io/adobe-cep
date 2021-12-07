@@ -108,7 +108,7 @@
       if (tabName === "openFile") {
         allowTypes = ['indd'];
       } else if (tabName === "placeFile") {
-        allowTypes = ['indd', 'jpg','jpeg','png', 'psd', 'tif', 'tiff', 'ai', 'eps', 'pdf'];
+        allowTypes = ['indd','jpg','jpeg','png','psd','tif','tiff','ai','eps','pdf'];
       }
     } else if (applicationName === applicationNames.PHOTOSHOP) {
       if (tabName === "openFile") {
@@ -293,11 +293,10 @@
   const syncLinks = () => {
     helperComponent.runJsx('saveCurrentDocument()').then(() => {
       helperComponent.getLinkedFileIDs(activeRelinkOptionName).then((fileIDs) => {
+        console.log('getLinkedFileIDs: ', fileIDs);
         if (fileIDs.length) {
           $pixxio.bulkMainVersionCheck(fileIDs).then((bulkMainVersionResponse) => {
             getFilesToUpdate(bulkMainVersionResponse).then((filesToUpdate) => {
-              console.log('filesToUpdate: ', filesToUpdate);
-
               if (filesToUpdate.length) {
                 downloadNewVersionOfFiles(filesToUpdate).then((newVersions) => {
                   console.log('SYNC DOWNLOAD DONE: ', newVersions);
@@ -311,6 +310,8 @@
               } else {
                 if (activeRelinkOptionName === 'allUpdatedLinks') {
                   showInfo('No updated links available.');
+                } else {
+                  showInfo('Selected links not found in pixx.io.');
                 }
               }
             });

@@ -34,7 +34,7 @@
         </Lifecycle>
         <UI>
           <Type>Panel</Type>
-          <Menu>pixx.io</Menu>
+          <Menu>pixxio</Menu>
           <Geometry>
             <Size>
               <Height>530</Height>
@@ -49,7 +49,12 @@
               <Width>370</Width>
             </MinSize>
           </Geometry>
-          <Icons />
+          <Icons>
+            <Icon Type="Normal">./CSXS/icons/iconLight.png</Icon>
+            <Icon Type="RollOver">./CSXS/icons/iconLight.png</Icon>
+            <Icon Type="DarkNormal">./CSXS/icons/iconDark.png</Icon>
+            <Icon Type="DarkRollOver">./CSXS/icons/iconDark.png</Icon>
+          </Icons>
         </UI>
       </DispatchInfo>
     </Extension>
