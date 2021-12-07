@@ -92,11 +92,12 @@ main {
 
     .button {
       &--secondary {
-        color: var(--highlight-color);
+        color: var(--primary-color);
       }
 
       &[type="submit"] {
-        background-color: var(--highlight-color);
+        background-color: var(--primary-color);
+        color: var(--background-color);
 
         &:disabled {
           opacity: 0.5;
@@ -176,8 +177,8 @@ main {
 
   &--action {
     padding: 0 16px;
-    background: var(--highlight-color);
-    color: #fff;
+    background: var(--primary-color);
+    color: var(--background-color);
     letter-spacing: 2px;
     text-align: center;
     text-transform: uppercase;

@@ -50,15 +50,18 @@
           background-color: var(--background-color-inactive);
           display: inline-block;
           visibility: visible;
-          border: 3px solid #fff;
           width: var(--size);
           height: var(--size);
-          border-radius: 6px;
+          border-radius: 4px;
           box-sizing: border-box;
         }
 
         &:checked:after {
-          background-color: var(--highlight-color);
+          background-color: var(--primary-color);
+          content: "\e913";
+          font-family: "pixxioIcons";
+          font-size: 20px;
+          color: var(--background-color);
         }
       }
 

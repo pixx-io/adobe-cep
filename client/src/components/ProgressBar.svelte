@@ -43,7 +43,7 @@
     .progressCurrent,
     .progressPending {
       height: inherit;
-      background-color: var(--highlight-color);
+      background-color: var(--primary-color);
     }
 
     .progressCurrent {

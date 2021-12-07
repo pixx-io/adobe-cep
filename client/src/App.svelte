@@ -499,7 +499,8 @@
     padding: 15px;
     border-radius: 6px;
     font-size: 14px;
-    background-color: var(--highlight-color);
+    background-color: var(--primary-color);
+    color: var(--background-color);
     box-shadow: rgb(0 0 0 / 20%) 0px 1px 3px;
     transition: 0.3s;
     word-break: break-word;
@@ -524,7 +525,7 @@
   }
 
   .infoOverlay {
-    background-color: var(--highlight-color);
+    background-color: var(--primary-color);
   }
 
   .errorOverlay {

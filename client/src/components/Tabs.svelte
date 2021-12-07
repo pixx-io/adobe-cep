@@ -41,7 +41,7 @@
       position: relative;
 
       &.active {
-        color: var(--color);
+        color: var(--primary-color);
         background-color: var(--background-color);
 
         .label {
