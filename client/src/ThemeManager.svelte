@@ -40,11 +40,16 @@
         const themeIsLight = sentinelColor > 128;
         const fontColor = (themeIsLight) ? { red: 51, green: 51, blue: 51 } : { red: 221, green: 221, blue: 221 };
 
+        const pixxioPrimaryColor = '#00628D';
+        const pixxioSecondaryColor = '#64D3CA';
+
         const styleId = "hostStyle";
         insertRule(styleId, "body", "--color: #" + toHex(fontColor));
         insertRule(styleId, "body", "--color-inactive: rgba(" + fontColor.red + ", " + fontColor.green + ", " + fontColor.blue + ", .5)");
         insertRule(styleId, "body", "--background-color: #" + toHex(appSkinInfo.panelBackgroundColor.color));
         insertRule(styleId, "body", "--highlight-color: #" + toHex(appSkinInfo.systemHighlightColor));
+        insertRule(styleId, "body", "--primary-color: " + (themeIsLight ? pixxioPrimaryColor : pixxioSecondaryColor));
+        insertRule(styleId, "body", "--secondary-color: " + (themeIsLight ? pixxioSecondaryColor : pixxioPrimaryColor));
 
         switch (sentinelColor) {
             case 240: // Light Gray Theme code
