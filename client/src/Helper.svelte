@@ -3,13 +3,40 @@
   const http = cep_node.require('http');
   const https = cep_node.require('https');
 
-  import { csInterface, pixxio } from "./stores/general.js";
+  import { onMount } from 'svelte';
+  import { csInterface, pixxio, appDataFolder } from "./stores/general.js";
+  import DonutChart from "./components/DonutChart.svelte";
+
+  let progressInOverlayPercent = 0;
+  let infoMessage = null;
+  let errorMessage = null;
+
+  let confirmData = {
+    message: null,
+    confirmButtonText: null,
+    cancelButtonText: null,
+    callback: null
+  };
+
+  onMount(async () => {
+    initEventListeners();
+  });
+
+  const initEventListeners = () => {
+    $csInterface.addEventListener('io.pixx.csxs.events.showError', function (evt) {
+      showError(evt.data === 'empty' ? null : evt.data);
+    });
+    
+    $csInterface.addEventListener('io.pixx.csxs.events.showInfo', function (evt) {
+      showInfo(evt.data === 'empty' ? null : evt.data);
+    });
+  };
 
   const getProtocol = (remoteUrl) => {
     return !remoteUrl.charAt(4).localeCompare("s") ? https : http;
   };
 
-  const isJson = (str) => {
+  export const isJson = (str) => {
     try {
       JSON.parse(str);
     } catch (e) {
@@ -18,8 +45,32 @@
     return true;
   };
 
-  const sendError = (error) => {
-    runJsx('sendEvent("io.pixx.csxs.events.showError", "' + error + '")');
+  export const showInfo = (message) => {
+    infoMessage = message;
+  };
+
+  export const showError = (message) => {
+    errorMessage = message;
+  };
+
+  export const confirm = (confirmMessage, confirmButtonText = 'yes', cancelButtonText = 'cancel') => {
+    return new Promise((resolve, reject) => {
+      confirmData.message = confirmMessage;
+      confirmData.confirmButtonText = confirmButtonText;
+      confirmData.cancelButtonText = cancelButtonText;
+      confirmData.callback = (isConfirmed) => {
+        confirmData.message = null;
+        if (isConfirmed) {
+          resolve();
+        } else {
+          reject();
+        }
+      };
+    });
+  };
+
+  export const updateDownloadProgress = (progress) => {
+    runJsx('sendEvent("io.pixx.csxs.events.updateDownloadProgress", "' + progress + '")');
   };
 
   export const loadJSX = (scriptName) => {
@@ -27,7 +78,7 @@
     runJsx('$.evalFile("' + extensionRoot + "/" + scriptName + '")').then().catch();
   };
 
-  export const runJsx = async (command) => {
+  export const runJsx = (command) => {
     return new Promise((resolve, reject) => {
       $csInterface.evalScript(command, (evalScriptReturnValueString) => {
         const evalScriptReturnValue = isJson(evalScriptReturnValueString) ? JSON.parse(evalScriptReturnValueString) : evalScriptReturnValueString;
@@ -41,7 +92,7 @@
     });
   };
 
-  export const download = async (remoteUrl, localFilePath) => {
+  export const download = (remoteUrl, localFilePath) => {
     const protocol = getProtocol(remoteUrl);
     let totalSizeToDownload = 0;
     let currentDownloadedSize = 0;
@@ -107,7 +158,7 @@
     });
   };
 
-  export const uploadFile = async (activeUploadOptionName) => {
+  export const uploadFile = (activeUploadOptionName) => {
     return new Promise((resolve, reject) => {
       updateDownloadProgress('pending');
       runJsx('saveCurrentDocument()').then(() => {
@@ -151,10 +202,6 @@
     });
   };
 
-  export const updateDownloadProgress = (progress) => {
-    runJsx('sendEvent("io.pixx.csxs.events.updateDownloadProgress", "' + progress + '")');
-  };
-
   export const fileExists = (localFilePath) => {
     return fs.existsSync(localFilePath);
   };
@@ -168,18 +215,11 @@
     }
   };
 
-  export const getLinkedFileIDs = (relinkOptionName) => {
+  export const getAllLinkedFileIDs = () => {
     return new Promise(async (resolve, reject) => {
-      if (relinkOptionName === 'selectedLinks') {
-        runJsx('getSelectedLinksFileIDs()').then((selectedFileIDs) => {
-          resolve(selectedFileIDs);
-        }).catch((error) => reject(error));
-      }
-      else if (relinkOptionName === 'allLinks' || relinkOptionName === 'allUpdatedLinks') {
-        runJsx('getAllLinksFileIDs()').then((fileIDs) => {
-          resolve(fileIDs);
-        }).catch((error) => reject(error));
-      }
+      runJsx('getAllLinksFileIDs()').then((fileIDs) => {
+        resolve(fileIDs);
+      }).catch((error) => reject(error));
     });
   };
 
@@ -188,7 +228,7 @@
       $pixxio.getFileById(fileID).then((file) => {
         resolve(file);
       }).catch((error) => {
-        sendError(error);
+        showError(error);
         reject();
       });
     });
@@ -238,4 +278,181 @@
       waitForLinkSizeInterval();
     });
   };
+
+  export const getLinks = () => {
+    return new Promise(async (resolve, reject) => {
+      runJsx('getLinks()').then((links) => {
+        resolve(links);
+      });
+    });
+  };
+
+  export const fileSizeRenderer = (bytes, precision = 0) => {
+    const units = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
+
+    if (isNaN(parseFloat(String(bytes))) || !isFinite(bytes)) {
+      return '?';
+    }
+
+    let unitIndex = 0;
+
+    while (bytes >= 1024) {
+      bytes /= 1024;
+      unitIndex++;
+    }
+
+    bytes = parseFloat(bytes.toString());
+
+    const currentUnit = units[unitIndex];
+
+    return `${bytes.toFixed(+precision)} ${currentUnit}`;
+  };
+
+  export const updateProgressInOverlay = (progressInPercent) => {
+    progressInOverlayPercent = progressInPercent;
+  };
+  
+  export const emptyCacheDirectory = () => {
+    return new Promise(async (resolve, reject) => {
+      runJsx('getOpenDocuments()').then((openDocuments) => {
+        const openDocumentsPaths = openDocuments.map(doc => doc.filePath + '/' + doc.name);
+
+        fs.readdir($appDataFolder, (err, fileNames) => {
+          for (const fileName of fileNames) {
+            if (!openDocumentsPaths.includes($appDataFolder + '/' + fileName)) {
+              fs.unlink($appDataFolder + '/' + fileName, err => {});
+            }
+          }
+          resolve();
+        });
+      });
+    });
+  };
 </script>
+
+<!-- CONFIRM DIALOG -->
+{#if confirmData.message}
+  <div class="backdrop">
+    <div class="confirmWrapper">
+      <span class="message">{@html confirmData.message}</span>
+      <div class="footer">
+        <button class="button" on:click="{e => confirmData.callback(false)}">{confirmData.cancelButtonText}</button>
+        <button class="button confirmButton" on:click="{e => confirmData.callback(true)}">{confirmData.confirmButtonText}</button>
+      </div>
+    </div>
+  </div>
+{/if}
+
+<!-- PROGRESS OVERLAY -->
+{#if progressInOverlayPercent}
+  <div class="backdrop">
+    <DonutChart filledPercent={progressInOverlayPercent}/>
+  </div>
+{/if}
+
+<!-- INFO OVERLAY -->
+{#if infoMessage}
+  <div class="backdrop">
+    <div class="notice infoOverlay">
+      <span class="message">{infoMessage}</span>
+      <button on:click="{e => infoMessage = null}">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+  </div>
+{/if}
+
+<!-- ERROR OVERLAY -->
+{#if errorMessage}
+  <div class="backdrop">
+    <div class="notice errorOverlay">
+      <span>{errorMessage}</span>
+      <button on:click="{e => errorMessage = null}">X</button>
+    </div>
+  </div>
+{/if}
+
+
+<style lang="scss">
+  .backdrop {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, .2);
+  }
+
+  .notice {
+    position: absolute;
+    top: 65px;
+    right: 10px;
+    left: 10px;
+    padding: 15px;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: var(--primary-color);
+    color: var(--background-color);
+    box-shadow: rgb(0 0 0 / 20%) 0px 1px 3px;
+    transition: 0.3s;
+    word-break: break-word;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    .message {
+      flex: 1;
+    }
+
+    button {
+      background-color: transparent;
+      border: none;
+      color: inherit;
+      cursor: pointer;
+
+      .material-icons {
+        font-size: 18px;
+      }
+    }
+  }
+
+  .infoOverlay {
+    background-color: var(--primary-color);
+  }
+
+  .errorOverlay {
+    background-color: red;
+    color: #fff;
+  }
+
+  .confirmWrapper {
+    position: absolute;
+    top: 65px;
+    right: 10px;
+    left: 10px;
+    padding: 15px;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: var(--primary-color);
+    color: var(--background-color);
+    box-shadow: rgb(0 0 0 / 20%) 0px 1px 3px;
+    transition: 0.3s;
+    word-break: break-word;
+    display: flex;
+    flex-direction: column;
+
+    .footer {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+
+      .confirmButton {
+        font-weight: bold;
+      }
+    }
+
+    button {
+      color: var(--background-color);
+    }
+  }
+</style>

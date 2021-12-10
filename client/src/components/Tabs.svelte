@@ -29,7 +29,7 @@
     background-color: var(--background-color-inactive);
     display: flex;
 
-    button {
+    .tablinks {
       flex: 1;
       border: none;
       outline: none;

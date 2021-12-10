@@ -300,3 +300,50 @@ function linkStatusObjectToString(status) {
 
   return link_status;
 }
+
+function getLinks() {
+  try {
+    var links = [];
+    
+    if (hasOpenDocument()) {
+      for (var i = 0; i < app.activeDocument.links.length; i++) {
+        var link = app.activeDocument.links[i];
+        links.push({
+          id: link.id,
+          name: link.name,
+          filePath: link.filePath,
+          size: link.size,
+          status: linkStatusObjectToString(link.status),
+          fileID: link.extractLabel('pixxio.fileID')
+        });
+      }
+    }
+    
+    return JSON.stringify(links);
+  } catch (e) {
+    sendError('getLinks error: ' + e.message);
+    return JSON.stringify({ success: false, errorMessage: e.message });
+  }
+}
+
+function getOpenDocuments() {
+  try {
+    var openDocuments = [];
+    
+    if (hasOpenDocument()) {
+      for (var i = 0; i < app.documents.length; i++) {
+        var document = app.documents[i];
+        openDocuments.push({
+          id: document.id,
+          name: document.name,
+          filePath: normalizeLocalPath(document.filePath.fsName)
+        });
+      }
+    }
+    
+    return JSON.stringify(openDocuments);
+  } catch (e) {
+    sendError('getOpenDocuments error: ' + e.message);
+    return JSON.stringify({ success: false, errorMessage: e.message });
+  }
+}

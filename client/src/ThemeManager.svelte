@@ -25,6 +25,15 @@
         return hex;
     }
 
+    function hexToRgb(hex) {
+      var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        red: parseInt(result[1], 16),
+        green: parseInt(result[2], 16),
+        blue: parseInt(result[3], 16)
+      } : null;
+    }
+
     function insertRule(stylesheetId, selector, rule) {
         var stylesheet = document.getElementById(stylesheetId);
         if (stylesheet) {
@@ -43,13 +52,21 @@
         const pixxioPrimaryColor = '#00628D';
         const pixxioSecondaryColor = '#64D3CA';
 
+        const primaryColorHex = themeIsLight ? pixxioPrimaryColor : pixxioSecondaryColor;
+        const secondaryColorHex = themeIsLight ? pixxioSecondaryColor : pixxioPrimaryColor;
+        const primaryColorRGB = hexToRgb(primaryColorHex);
+        const secondaryColorRGB = hexToRgb(secondaryColorHex);
+
         const styleId = "hostStyle";
         insertRule(styleId, "body", "--color: #" + toHex(fontColor));
+        insertRule(styleId, "body", "--color-rgb: " + fontColor.red + ', ' + fontColor.green + ', ' + fontColor.blue);
         insertRule(styleId, "body", "--color-inactive: rgba(" + fontColor.red + ", " + fontColor.green + ", " + fontColor.blue + ", .5)");
         insertRule(styleId, "body", "--background-color: #" + toHex(appSkinInfo.panelBackgroundColor.color));
         insertRule(styleId, "body", "--highlight-color: #" + toHex(appSkinInfo.systemHighlightColor));
-        insertRule(styleId, "body", "--primary-color: " + (themeIsLight ? pixxioPrimaryColor : pixxioSecondaryColor));
-        insertRule(styleId, "body", "--secondary-color: " + (themeIsLight ? pixxioSecondaryColor : pixxioPrimaryColor));
+        insertRule(styleId, "body", "--primary-color: " + primaryColorHex);
+        insertRule(styleId, "body", "--primary-color-rgb: " + primaryColorRGB.red + ', ' + primaryColorRGB.green + ', ' + primaryColorRGB.blue);
+        insertRule(styleId, "body", "--secondary-color: " + secondaryColorHex);
+        insertRule(styleId, "body", "--secondary-color-rgb: " + secondaryColorRGB.red + ', ' + secondaryColorRGB.green + ', ' + secondaryColorRGB.blue);
 
         switch (sentinelColor) {
             case 240: // Light Gray Theme code
