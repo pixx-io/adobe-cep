@@ -5,8 +5,19 @@
   import { pixxio, appDataFolder, helper} from "../stores/general.js";
 
   let links = [];
-
   let selectedLinks = [];
+  let sortButtons = [{
+    label: '',
+    sortProperty: 'fileID'
+  }, {
+    label: 'Name',
+    sortProperty: 'name'
+  }, {
+    label: '',
+    sortProperty: 'status'
+  }];
+  let sortProperty = 'name';
+  let sortDirection = 'ascending';
 
   onMount(async () => {
     fetchLinks();
@@ -15,6 +26,7 @@
   export const fetchLinks = () => {
     $helper.getLinks().then((getLinksResponse) => {
       links = removeDuplicateLinks(getLinksResponse);
+      sortLinks();
     });
   };
 
@@ -28,6 +40,40 @@
       }
     });
     return uniqueArray;
+  };
+
+  const sortLinks = () => {
+    const sortAscending = () => {
+      links.sort((a, b) => {
+        if (a[sortProperty] < b[sortProperty]) {
+          return -1;
+        }
+        if (a[sortProperty] > b[sortProperty]) {
+          return 1;
+        }
+        return 0;
+      });
+    };
+    const sortDescending = () => {
+      links.sort((a, b) => {
+        if (a[sortProperty] > b[sortProperty]) {
+          return -1;
+        }
+        if (a[sortProperty] < b[sortProperty]) {
+          return 1;
+        }
+        return 0;
+      });
+    };
+
+    if (sortDirection === 'ascending') {
+      sortAscending();
+    }
+    else if (sortDirection === 'descending') {
+      sortDescending();
+    }
+
+    links = [...links];
   };
 
   const preSyncLinks = (clickEvent, relinkOptionName, presetFileIDs = null) => {
@@ -268,8 +314,35 @@
     
     preSyncLinks(clickEvent, 'presetFileIDs', [link.fileID]);
   };
+
+  const changeSorting = (button) => {
+    if (sortProperty === button.sortProperty) {
+      sortDirection = sortDirection === 'ascending' ? 'descending' : 'ascending';
+    } else {
+      sortProperty = button.sortProperty;
+      sortDirection = 'ascending';
+    }
+
+    sortLinks();
+  }
 </script>
 
+<div class="linksSorter">
+  {#each sortButtons as button}
+    <button class="button" on:click="{e => changeSorting(button)}">
+      {#if button.label}
+        <div class="label">{button.label}</div>
+      {/if}
+      {#if sortProperty === button.sortProperty}
+        {#if sortDirection === 'ascending'}
+          <div class="arrow arrow--down"></div>
+        {:else if sortDirection === 'descending'}
+          <div class="arrow arrow--up"></div>
+        {/if}
+      {/if}
+    </button>
+  {/each}
+</div>
 <div class="linksWrapper">
   {#each links as link}
     <Link
@@ -296,35 +369,111 @@
     disabled={!links.length}
     data-tooltip="Relink all updated pixx.io links"
   >
-    <div class="icon pixxio_vertical_dots"></div>
+    <div class="icon icon--updateAndCheck"></div>
   </button>
   <button
     class="button tooltip"
     on:click="{e => preSyncLinks(e, 'links')}"
     disabled={!links.length}
-    data-tooltip="Relink selected... Alt-key + click to relink all"
+    data-tooltip="Relink selected pixx.io links. Alt-key + click to relink all"
   >
-    <div class="icon pixxio_horizontal_dots"></div>
+    <div class="icon icon--update"></div>
   </button>
 </div>
 
 
 <style lang="scss">
+  .linksSorter {
+    margin-top: 20px;
+    padding: 6px 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+
+    button {
+      flex: 1;
+      text-align: left;
+      line-height: 1.6em;
+      text-transform: unset;
+      padding: 0 8px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-around;
+      border-right: 1px solid rgba(var(--color-rgb), .3);
+      border-radius: 0;
+
+      &:first-of-type {
+        flex: unset;
+        width: 18px;
+        padding: 0;
+      }
+
+      &:last-of-type {
+        flex: unset;
+        width: 26px;
+        padding: 0;
+      }
+
+      .label {
+        flex: 1;
+      }
+
+      .arrow {
+        border: 4px solid transparent;
+        //margin-left: 4px;
+
+        &--up {
+          border-bottom-color: var(--color);
+          margin-bottom: 6px;
+        }
+        &--down {
+          border-top-color: var(--color);
+          margin-top: 2px;
+        }
+      }
+    }
+  }
+
   .linksWrapper {
     flex: 1;
-    margin: 20px 0px;
+    margin-bottom: 20px;
     overflow: auto;
   }
 
   .footer {
     display: flex;
     flex-direction: row;
-    align-items: center;
+    align-items: stretch;
     padding: 0px 20px 20px 20px;
     margin-top: 20px;
 
-    .button .icon {
-      font-size: 16px;
+    .button {
+      padding: 0px 8px;
+      
+      .icon {
+        width: 32px;
+        height: 100%;
+        background-color: var(--color);
+        mask-position: center;
+        mask-repeat: no-repeat;
+        mask-size: contain;
+        -webkit-mask-position: center;
+        -webkit-mask-repeat: no-repeat;
+        -webkit-mask-size: contain;
+
+        &--updateAndCheck {
+          $maskUrl: '../assets/icons/update_and_check.svg';
+          mask-image: url($maskUrl);
+          -webkit-mask-image: url($maskUrl);
+        }
+
+        &--update {
+          $maskUrl: '../assets/icons/update.svg';
+          mask-image: url($maskUrl);
+          -webkit-mask-image: url($maskUrl);
+        }
+      }
     }
   }
 </style>

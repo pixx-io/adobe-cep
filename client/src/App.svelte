@@ -22,10 +22,10 @@
 
   // TABS CONFIG
   let mainTabs = [
-    { name: "openFile", label: "Open document", class: "pixxio_media", availableForApplication: [$applicationNames.INDESIGN, $applicationNames.PHOTOSHOP] },
-    { name: "placeFile", label: "Place file", class: "pixxio_plus_circle", availableForApplication: [$applicationNames.INDESIGN, $applicationNames.PHOTOSHOP] },
-    { name: "uploadFile", label: "Upload file", class: "pixxio_upload_cloud_outline", availableForApplication: [$applicationNames.INDESIGN, $applicationNames.PHOTOSHOP] },
-    { name: "relink", label: "Links", class: "pixxio_horizontal_dots", availableForApplication: [$applicationNames.INDESIGN] }
+    { name: "openFile", label: "Open document", class: "openDocument", availableForApplication: [$applicationNames.INDESIGN, $applicationNames.PHOTOSHOP] },
+    { name: "placeFile", label: "Place file", class: "placeFile", availableForApplication: [$applicationNames.INDESIGN, $applicationNames.PHOTOSHOP] },
+    { name: "uploadFile", label: "Upload file", class: "uploadDocument", availableForApplication: [$applicationNames.INDESIGN, $applicationNames.PHOTOSHOP] },
+    { name: "relink", label: "Links", class: "links", availableForApplication: [$applicationNames.INDESIGN] }
   ];
   let activeMainTabName = mainTabs[0].name;
 
