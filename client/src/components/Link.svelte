@@ -45,6 +45,8 @@
 >
   {#if link.fileID}
     <div class="isPixxioIndicator"></div>
+  {:else}
+    <div class="isPixxioIndicatorPlaceholder"></div>
   {/if}
   <div class="name">{link.name}</div>
   {#if link.status === $linkStatuses.LINK_MISSING}
@@ -52,13 +54,13 @@
       class="linkStatusIndicator linkStatusIndicator--error"
       on:click|stopPropagation="{e => null}"
       on:dblclick="{doubleClickError}"
-    >?</div>
+    ></div>
   {:else if link.status === $linkStatuses.LINK_OUT_OF_DATE}
     <div
       class="linkStatusIndicator linkStatusIndicator--warning"
       on:click|stopPropagation="{e => null}"
       on:dblclick|stopPropagation="{doubleClickWarning}"
-    >!</div>
+    ></div>
   {/if}
 </div>
 
@@ -80,6 +82,9 @@
       width: 18px;
       background: center / contain no-repeat url(../assets/icons/iconWhite.png);
     }
+    .isPixxioIndicatorPlaceholder {
+      width: 18px;
+    }
 
     .name {
       flex: 1;
@@ -91,19 +96,16 @@
 
     .linkStatusIndicator {
       width: 18px;
-      background-color: var(--primary-color);
-      color: var(--background-color);
-      border-radius: 100vh;
-      text-align: center;
       margin-left: 8px;
-      font-weight: bold;
+      background-size: 30px;
+      background-position: center;
 
       &--warning {
-        background-color: var(--yellow);
+        background-image: url(../assets/icons/link_out_of_date.svg);
       }
 
       &--error {
-        background-color: var(--red);
+        background-image: url(../assets/icons/link_missing.svg);
       }
     }
   }
