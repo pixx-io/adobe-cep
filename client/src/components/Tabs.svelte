@@ -11,12 +11,12 @@
   }
 </script>
 
-<div class="tab" transition:slide>
+<div class="tabsContainer" transition:slide>
+  <div class="pixxioLogo"></div>
   {#each tabs as tab}
     <button
-      class="tablinks {tab.name} {tab.class}"
+      class="tabLink {tab.name} {tab.class}"
       class:active="{activeTabName === tab.name}"
-      data-tooltip={tab.label}
       on:click={() => changeTab(tab.name)}
     >
       <span class="label">{tab.label}</span>
@@ -25,12 +25,17 @@
 </div>
 
 <style lang="scss">
-  .tab {
+  .tabsContainer {
     background-color: var(--background-color-inactive);
     display: flex;
 
-    .tablinks {
-      flex: 1;
+    .pixxioLogo {
+      display: none;
+      width: 56px;
+      background: center no-repeat url(../assets/icons/iconWhite.png);
+    }
+
+    .tabLink {
       border: none;
       outline: none;
       cursor: pointer;
@@ -38,37 +43,38 @@
       margin: 0;
       color: var(--color-inactive);
       background-color: transparent;
-      position: relative;
+      display: flex;
+      align-items: center;
+      width: 56px;
+      flex: unset;
+      transition: flex .5s ease;
 
       &.active {
+        flex: 1;
         color: var(--primary-color);
         background-color: var(--background-color);
-
-        .label {
-          opacity: 1;
-        }
       }
 
       &:disabled {
         cursor: not-allowed;
       }
 
-      &:hover {
-        .label {
-          opacity: 1;
-        }
-      }
-
       .label {
-        opacity: 0;
-        position: absolute;
-        bottom: 4px;
-        left: 0;
-        font-size: 8px;
         width: 100%;
+        text-align: left;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 12px;
         font-family: 'Heebo';
-        transition: opacity .3s ease;
+        margin-left: 8px;
       }
+    }
+  }
+
+  @media (min-width: 380px) {
+    .tabsContainer .pixxioLogo {
+      display: block;
     }
   }
 </style>
