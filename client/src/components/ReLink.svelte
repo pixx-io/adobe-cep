@@ -290,14 +290,17 @@
         const previousSelectedIndex = links.map(link => link.id).indexOf(selectedLinks[selectedLinks.length - 1].id);
         const selectedIndex = links.map(link => link.id).indexOf(link.id);
         const rangeLinks = links.slice(
-          previousSelectedIndex <= selectedIndex ? previousSelectedIndex : selectedIndex,
+          previousSelectedIndex <= selectedIndex ? previousSelectedIndex + 1 : selectedIndex,
           (selectedIndex >= previousSelectedIndex ? selectedIndex : previousSelectedIndex) + 1
-        );
+        ).filter(link => link.fileID);
         selectedLinks.push(...rangeLinks);
       } else {
         selectedLinks.push(link);
       }
     }
+    console.log('selectedLinks 1: ', selectedLinks);
+    selectedLinks = removeDuplicateLinks(selectedLinks);
+    console.log('selectedLinks 2: ', selectedLinks);
 
     // to trigger change detection, otherwise UI is not updated
     selectedLinks = [...selectedLinks];
