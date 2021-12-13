@@ -8,13 +8,15 @@
   let selectedLinks = [];
   let sortButtons = [{
     label: '',
-    sortProperty: 'fileID'
+    sortProperty: 'fileID',
+    icon: './assets/icons/iconWhite.png'
   }, {
     label: 'Name',
     sortProperty: 'name'
   }, {
     label: '',
-    sortProperty: 'status'
+    sortProperty: 'status',
+    icon: './assets/icons/status.svg'
   }];
   let sortProperty = 'name';
   let sortDirection = 'ascending';
@@ -330,6 +332,9 @@
 <div class="linksSorter">
   {#each sortButtons as button}
     <button class="button" on:click="{e => changeSorting(button)}">
+      {#if button.icon}
+        <div class="icon" style="background-image: url({button.icon})"></div>
+      {/if}
       {#if button.label}
         <div class="label">{button.label}</div>
       {/if}
@@ -399,20 +404,24 @@
       display: flex;
       flex-direction: row;
       align-items: center;
-      justify-content: space-around;
+      justify-content: flex-start;
       border-right: 1px solid rgba(var(--color-rgb), .3);
       border-radius: 0;
+      letter-spacing: normal;
 
-      &:first-of-type {
+      &:first-of-type,
+      &:last-of-type {
         flex: unset;
-        width: 18px;
+        width: 28px;
         padding: 0;
       }
 
-      &:last-of-type {
-        flex: unset;
-        width: 26px;
-        padding: 0;
+      .icon {
+        height: 100%;
+        width: 18px;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: contain;
       }
 
       .label {
@@ -421,7 +430,6 @@
 
       .arrow {
         border: 4px solid transparent;
-        //margin-left: 4px;
 
         &--up {
           border-bottom-color: var(--color);

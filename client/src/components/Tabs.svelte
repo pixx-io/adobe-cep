@@ -70,7 +70,7 @@
 
       .tabIcon {
         width: 32px;
-        height: 16px;
+        height: 100%;
         color: var(--primary-color);
         background-color: var(--color);
         mask-position: center;
@@ -118,7 +118,7 @@
     }
   }
 
-  @media (min-width: 380px) {
+  @media (min-width: 382px) {
     .tabsContainer .pixxioLogo {
       display: block;
     }

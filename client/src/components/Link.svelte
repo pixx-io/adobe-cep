@@ -79,11 +79,14 @@
     }
 
     .isPixxioIndicator {
-      width: 18px;
-      background: center / contain no-repeat url(../assets/icons/iconWhite.png);
+      width: 26px;
+      background-image: url(../assets/icons/iconWhite.png);
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: left center;
     }
     .isPixxioIndicatorPlaceholder {
-      width: 18px;
+      width: 28px;
     }
 
     .name {
@@ -95,10 +98,12 @@
     }
 
     .linkStatusIndicator {
-      width: 18px;
+      width: 28px;
       margin-left: 8px;
       background-size: 30px;
-      background-position: center;
+      background-size: 24px;
+      background-repeat: no-repeat;
+      background-position: left center;
 
       &--warning {
         background-image: url(../assets/icons/link_out_of_date.svg);
