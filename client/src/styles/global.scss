@@ -94,6 +94,12 @@ main {
       display: none;
     }
 
+    .downloadFormats {
+      select {
+        color: var(--primary-color);
+      }
+    }
+
     .button {
       &--secondary {
         color: var(--primary-color);

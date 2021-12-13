@@ -123,10 +123,17 @@
         allowTypes = ['jpeg','jpg','png','png00','png8','png24','png32','png48','png64'];
       }
     }
+    
+    let allowFormats = null;
+    if (tabName === "openFile") {
+      allowFormats = ['original'];
+    } else if (tabName === "placeFile") {
+      allowFormats = ['original', 'preview'];
+    }
 
     $pixxio.getMedia({
       max: 1,
-      allowFormats: ["original"],
+      allowFormats: allowFormats,
       allowTypes: allowTypes,
       additionalResponseFields: ["id", "fileName"],
       showFileName: true,
