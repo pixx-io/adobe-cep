@@ -14,6 +14,8 @@
   import RadioGroup from "./components/RadioGroup.svelte";
   import ReLink from "./components/ReLink.svelte";
 
+  const versionNumber = 'v2.0.0-beta';
+
   let themeManagerComponent;
   let helperComponent;
   let relinkComponent;
@@ -22,9 +24,9 @@
 
   // TABS CONFIG
   let mainTabs = [
-    { name: "openFile", label: "Open document", class: "openDocument", availableForApplication: [$applicationNames.INDESIGN, $applicationNames.PHOTOSHOP] },
-    { name: "placeFile", label: "Place file", class: "placeFile", availableForApplication: [$applicationNames.INDESIGN, $applicationNames.PHOTOSHOP] },
-    { name: "uploadFile", label: "Upload file", class: "uploadDocument", availableForApplication: [$applicationNames.INDESIGN, $applicationNames.PHOTOSHOP] },
+    { name: "openFile", label: "Open", class: "openDocument", availableForApplication: [$applicationNames.INDESIGN, $applicationNames.PHOTOSHOP] },
+    { name: "placeFile", label: "Place", class: "placeFile", availableForApplication: [$applicationNames.INDESIGN, $applicationNames.PHOTOSHOP] },
+    { name: "uploadFile", label: "Upload", class: "uploadDocument", availableForApplication: [$applicationNames.INDESIGN, $applicationNames.PHOTOSHOP] },
     { name: "relink", label: "Links", class: "links", availableForApplication: [$applicationNames.INDESIGN] }
   ];
   let activeMainTabName = mainTabs[0].name;
@@ -84,6 +86,7 @@
       <Menu> \
         <MenuItem Id="emptyCacheDirectory" Label="Empty cache directory"/> \
         <MenuItem Id="logout" Label="Logout"/> \
+        <MenuItem Id="versionNumber" Label="' + versionNumber + '" Enabled="false"/> \
       </Menu>'
     ;
     $csInterface.setPanelFlyoutMenu(flyoutXML);

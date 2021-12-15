@@ -372,18 +372,18 @@
   </div>
   <div class="flexSpacer"></div>
   <button
-    class="button tooltip"
+    class="button"
     on:click="{e => preSyncLinks(e, 'allUpdatedLinks')}"
     disabled={!links.length}
-    data-tooltip="Relink all updated pixx.io links"
+    title="Relink all updated pixx.io links"
   >
     <div class="icon icon--updateAndCheck"></div>
   </button>
   <button
-    class="button tooltip"
+    class="button"
     on:click="{e => preSyncLinks(e, 'links')}"
     disabled={!links.length}
-    data-tooltip="Relink selected pixx.io links. Alt-key + click to relink all"
+    title="Relink selected pixx.io links. Alt-key + click to relink all"
   >
     <div class="icon icon--update"></div>
   </button>
@@ -448,7 +448,6 @@
 
   .linksWrapper {
     flex: 1;
-    margin-bottom: 20px;
     overflow: auto;
   }
 
@@ -456,8 +455,8 @@
     display: flex;
     flex-direction: row;
     align-items: stretch;
-    padding: 0px 20px 20px 20px;
-    margin-top: 20px;
+    padding: 0px 20px 10px 20px;
+    margin-top: 10px;
 
     .button {
       padding: 0px 8px;

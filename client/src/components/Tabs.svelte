@@ -31,8 +31,7 @@
     display: flex;
 
     .pixxioLogo {
-      display: none;
-      width: 56px;
+      width: 48px;
       background: center no-repeat url(../assets/icons/iconWhite.png);
     }
 
@@ -40,13 +39,13 @@
       border: none;
       outline: none;
       cursor: pointer;
-      padding: 14px 16px 18px 16px;
+      padding: 10px;
       margin: 0;
       color: var(--color-inactive);
       background-color: transparent;
       display: flex;
       align-items: center;
-      width: 56px;
+      width: 48px;
       flex: unset;
       transition: flex .5s ease;
 
@@ -115,12 +114,6 @@
         font-family: 'Heebo';
         transition: margin .3s ease;
       }
-    }
-  }
-
-  @media (min-width: 382px) {
-    .tabsContainer .pixxioLogo {
-      display: block;
     }
   }
 </style>
