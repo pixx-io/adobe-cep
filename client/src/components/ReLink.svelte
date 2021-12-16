@@ -36,12 +36,24 @@
     const uniqueArray = [];
     const seenFileIDs = {};
     linksArray.forEach((link) => {
-      if (!seenFileIDs.hasOwnProperty(link.fileID)) {
+      let linkIdentifier = getLinkIdentifier(link);
+      if (!seenFileIDs.hasOwnProperty(linkIdentifier)) {
         uniqueArray.push(link);
-        seenFileIDs[link.fileID] = true;
+        seenFileIDs[linkIdentifier] = 1;
+      } else {
+        seenFileIDs[linkIdentifier] = seenFileIDs[linkIdentifier] + 1;
       }
     });
+
+    uniqueArray.forEach((link) => {
+      let linkIdentifier = getLinkIdentifier(link);
+      link.count = seenFileIDs[linkIdentifier] ?? 1;
+    });
+
     return uniqueArray;
+  };
+  const getLinkIdentifier = (link) => {
+    return link.fileID || link.filePath;
   };
 
   const sortLinks = () => {
@@ -298,9 +310,7 @@
         selectedLinks.push(link);
       }
     }
-    console.log('selectedLinks 1: ', selectedLinks);
     selectedLinks = removeDuplicateLinks(selectedLinks);
-    console.log('selectedLinks 2: ', selectedLinks);
 
     // to trigger change detection, otherwise UI is not updated
     selectedLinks = [...selectedLinks];
@@ -448,7 +458,8 @@
 
   .linksWrapper {
     flex: 1;
-    overflow: auto;
+    overflow-y: scroll;
+    overflow-y: overlay;
   }
 
   .footer {

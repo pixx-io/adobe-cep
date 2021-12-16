@@ -48,7 +48,10 @@
   {:else}
     <div class="isPixxioIndicatorPlaceholder"></div>
   {/if}
-  <div class="name">{link.name}</div>
+  <div class="title">
+    <div class="name">{link.name}</div>
+    <div class="count">({link.count})</div>
+  </div>
   {#if link.status === $linkStatuses.LINK_MISSING}
     <div
       class="linkStatusIndicator linkStatusIndicator--error"
@@ -89,12 +92,25 @@
       width: 28px;
     }
 
-    .name {
+    .title {
       flex: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      min-width: 0;
       margin-left: 4px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      .name {
+        flex: 1;
+        max-width: max-content;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .count {
+        margin-left: 4px;
+      }
     }
 
     .linkStatusIndicator {
