@@ -254,6 +254,7 @@
           const confirmMessage = 'Do you want to log out?';
           $helper.confirm(confirmMessage, 'yes', 'no').then(() => {
             $pixxio.forceLogout();
+            getMedia(activeMainTabName);
           }).catch(() => {});
           break;
         }
