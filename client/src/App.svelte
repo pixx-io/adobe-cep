@@ -4,11 +4,10 @@
   import PIXXIO from "@pixx.io/jsdk";
 
   // TIPPY
-  import tippy from 'tippy.js';
   import 'tippy.js/dist/tippy.css'; // optional for styling
   
   // STORE
-  import { csInterface, pixxio, appDataFolder, applicationName, applicationNames, helper, tippyGlobal } from "./stores/general.js";
+  import { csInterface, pixxio, appDataFolder, applicationName, applicationNames, helper } from "./stores/general.js";
 
   // COMPONENTS
   import Helper from "./Helper.svelte";
@@ -65,16 +64,11 @@
       updateAvailableTabs();
       themeManagerComponent.init();
       initFileSystemStructure();
-      initTippy();
       initPixxioJSDK();
       addFlyoutMenu();
       getMedia(activeMainTabName);
       updateUploadOptions();
     });
-  };
-
-  const initTippy = () => {
-    tippyGlobal.set(tippy);
   };
 
   const initPixxioJSDK = () => {

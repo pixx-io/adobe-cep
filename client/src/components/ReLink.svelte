@@ -1,8 +1,10 @@
 <script>
+  import tippy from 'tippy.js';
+
   import { onMount } from "svelte";
   import Link from "./Link.svelte";
   
-  import { pixxio, appDataFolder, helper, tippyGlobal} from "../stores/general.js";
+  import { pixxio, appDataFolder, helper } from "../stores/general.js";
 
   let links = [];
   let selectedLinks = [];
@@ -34,12 +36,14 @@
   };
 
   const setTooltips = () => {
-    $tippyGlobal('#relinkButton--relinkAllUpdated', {
+    tippy('#relinkButton--relinkAllUpdated', {
       content: 'Relink all updated pixx.io links',
+      arrow: false
     });
 
-    $tippyGlobal('#relinkButton--relinkSelected', {
+    tippy('#relinkButton--relinkSelected', {
       content: 'Relink selected pixx.io links. Alt-key + click to relink all',
+      arrow: false
     });
   };
 
@@ -482,6 +486,7 @@
 
     .button {
       padding: 0px 8px;
+      border-radius: 100vh;
       
       .icon {
         width: 32px;
