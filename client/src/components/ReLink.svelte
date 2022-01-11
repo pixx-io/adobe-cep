@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import Link from "./Link.svelte";
   
-  import { pixxio, appDataFolder, helper} from "../stores/general.js";
+  import { pixxio, appDataFolder, helper, tippyGlobal} from "../stores/general.js";
 
   let links = [];
   let selectedLinks = [];
@@ -22,6 +22,7 @@
   let sortDirection = 'ascending';
 
   onMount(async () => {
+    setTooltips();
     fetchLinks();
   });
 
@@ -29,6 +30,16 @@
     $helper.getLinks().then((getLinksResponse) => {
       links = removeDuplicateLinks(getLinksResponse);
       sortLinks();
+    });
+  };
+
+  const setTooltips = () => {
+    $tippyGlobal('#relinkButton--relinkAllUpdated', {
+      content: 'Relink all updated pixx.io links',
+    });
+
+    $tippyGlobal('#relinkButton--relinkSelected', {
+      content: 'Relink selected pixx.io links. Alt-key + click to relink all',
     });
   };
 
@@ -382,18 +393,18 @@
   </div>
   <div class="flexSpacer"></div>
   <button
+    id="relinkButton--relinkAllUpdated"
     class="button"
     on:click="{e => preSyncLinks(e, 'allUpdatedLinks')}"
     disabled={!links.length}
-    title="Relink all updated pixx.io links"
   >
     <div class="icon icon--updateAndCheck"></div>
   </button>
   <button
+    id="relinkButton--relinkSelected"
     class="button"
     on:click="{e => preSyncLinks(e, 'links')}"
     disabled={!links.length}
-    title="Relink selected pixx.io links. Alt-key + click to relink all"
   >
     <div class="icon icon--update"></div>
   </button>
