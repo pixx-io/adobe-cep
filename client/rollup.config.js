@@ -44,15 +44,15 @@ export default {
 				// enable run-time checks when not in production
 				dev: !production
 			},
-            preprocess: sveltePreprocess()
+      preprocess: sveltePreprocess()
 		}),
 		// we'll extract any component CSS out into
 		// a separate file - better for performance
 		css({ output: 'bundle.css' }),
-        scss({
-            output: 'public/build/global.css',
-            include: ['/**/*.scss'] // do not include Svelte-generated *.css files
-        }),
+    scss({
+        output: 'public/build/global.css',
+        include: ['/**/*.scss'] // do not include Svelte-generated *.css files
+    }),
 
 		// If you have external dependencies installed from
 		// npm, you'll most likely need these plugins. In

@@ -5,7 +5,6 @@ export const pixxio = writable(null);
 export const appDataFolder = writable(null);
 export const applicationName = writable(null);
 export const helper = writable(null);
-export const tippyGlobal = writable(null);
 
 /*
  * ENUMS
