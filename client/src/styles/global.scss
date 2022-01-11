@@ -73,7 +73,7 @@ main {
   position: relative;
 
   .field {
-    border-color: var(--color);
+    border-color: rgba(var(--color-rgb), .5);
 
     input {
       background-color: transparent;
@@ -82,7 +82,7 @@ main {
 
     label {
       background-color: var(--background-color);
-      color: var(--color);
+      color: rgba(var(--color-rgb), .5);
     }
   }
 
