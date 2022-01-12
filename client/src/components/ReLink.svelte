@@ -1,7 +1,7 @@
 <script>
   import tippy from 'tippy.js';
 
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import Link from "./Link.svelte";
   
   import { pixxio, appDataFolder, helper } from "../stores/general.js";
@@ -23,10 +23,17 @@
   let sortProperty = 'name';
   let sortDirection = 'ascending';
 
+  let tooltipElementAllUpdated = null;
+  let tooltipElementSelected = null;
+  let tippyInstanceAllUpdated = null;
+  let tippyInstanceSelected = null;
+
   onMount(async () => {
-    setTooltips();
+    createTippy();
     fetchLinks();
   });
+
+  onDestroy(() => destroyTippy());
 
   export const fetchLinks = () => {
     $helper.getLinks().then((getLinksResponse) => {
@@ -35,17 +42,24 @@
     });
   };
 
-  const setTooltips = () => {
-    tippy('#relinkButton--relinkAllUpdated', {
+  const createTippy = () => {
+    tippyInstanceAllUpdated = tippy(tooltipElementAllUpdated, {
       content: 'Relink all updated pixx.io links',
       arrow: false
     });
 
-    tippy('#relinkButton--relinkSelected', {
+    tippyInstanceSelected = tippy(tooltipElementSelected, {
       content: 'Relink selected pixx.io links. Alt-key + click to relink all',
       arrow: false
     });
   };
+
+  const destroyTippy = () => {
+    console.log('tippyInstanceAllUpdated: ', tippyInstanceAllUpdated);
+    console.log('tippyInstanceSelected: ', tippyInstanceSelected);
+    if (tippyInstanceAllUpdated) { tippyInstanceAllUpdated.destroy(); }
+    if (tippyInstanceSelected) { tippyInstanceSelected.destroy(); }
+  }
 
   const removeDuplicateLinks = (linksArray) => {
     const uniqueArray = [];
@@ -397,18 +411,18 @@
   </div>
   <div class="flexSpacer"></div>
   <button
-    id="relinkButton--relinkAllUpdated"
     class="button"
     on:click="{e => preSyncLinks(e, 'allUpdatedLinks')}"
     disabled={!links.length}
+    bind:this={tooltipElementAllUpdated}
   >
     <div class="icon icon--updateAndCheck"></div>
   </button>
   <button
-    id="relinkButton--relinkSelected"
     class="button"
     on:click="{e => preSyncLinks(e, 'links')}"
     disabled={!links.length}
+    bind:this={tooltipElementSelected}
   >
     <div class="icon icon--update"></div>
   </button>
