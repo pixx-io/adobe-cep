@@ -55,8 +55,6 @@
   };
 
   const destroyTippy = () => {
-    console.log('tippyInstanceAllUpdated: ', tippyInstanceAllUpdated);
-    console.log('tippyInstanceSelected: ', tippyInstanceSelected);
     if (tippyInstanceAllUpdated) { tippyInstanceAllUpdated.destroy(); }
     if (tippyInstanceSelected) { tippyInstanceSelected.destroy(); }
   }
