@@ -5,8 +5,6 @@
   </ExtensionList>
   <ExecutionEnvironment>
     <HostList>
-      <Host Name="PHXS" Version="20" />
-      <Host Name="PHSP" Version="20" />
       <Host Name="IDSN" Version="13" />
     </HostList>
     <LocaleList>
