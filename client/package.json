@@ -10,24 +10,23 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.0.0",
     "@rollup/plugin-node-resolve": "^11.0.0",
-    "autoprefixer": "^10.3.7",
-    "cssnano": "^5.0.8",
-    "postcss": "^8.3.9",
-    "postcss-load-config": "^3.1.0",
-    "rollup": "^2.61.0",
+    "autoprefixer": "^10.4.2",
+    "cssnano": "^5.0.15",
+    "postcss": "^8.4.5",
+    "postcss-load-config": "^3.1.1",
+    "rollup": "^2.63.0",
     "rollup-plugin-css-only": "^3.1.0",
     "rollup-plugin-livereload": "^2.0.0",
     "rollup-plugin-scss": "^3.0.0",
     "rollup-plugin-svelte": "^7.0.0",
     "rollup-plugin-terser": "^7.0.0",
-    "sass": "^1.44.0",
-    "svelte": "^3.44.2",
-    "svelte-preprocess": "^4.9.8"
+    "sass": "^1.47.0",
+    "svelte": "^3.46.0",
+    "svelte-preprocess": "^4.10.1"
   },
   "dependencies": {
-    "@pixx.io/jsdk": "^0.3.2",
+    "@pixx.io/jsdk": "^0.3.5",
     "sirv-cli": "^1.0.0",
-    "svelte-preprocess": "^4.9.8",
     "tippy.js": "^6.3.7"
   }
 }
