@@ -17,7 +17,7 @@
   import RadioGroup from "./components/RadioGroup.svelte";
   import ReLink from "./components/ReLink.svelte";
 
-  const versionNumber = 'v2.0.0';
+  const versionNumber = 'v2.0.1';
 
   let themeManagerComponent;
   let helperComponent;
@@ -285,6 +285,19 @@
     $csInterface.addEventListener('io.pixx.csxs.events.updateDownloadProgress', (event) => {
       updateProgressBar(event.data === 'empty' ? 0 : event.data);
     });
+
+    $csInterface.addEventListener('io.pixx.csxs.events.saveFileIDToHiddenFile', (event) => {
+      if (event.data !== 'empty') {
+        const localFilePath = event.data.localFilePath;
+        const localFileName = localFilePath.split('/').pop();
+        const hiddenFilePath = localFilePath.replace(new RegExp(localFileName + '$'), '.fileID_' + localFileName);
+        saveFileIDToHiddenFile(hiddenFilePath, event.data.fileID);
+      }
+    });
+  };
+
+  const saveFileIDToHiddenFile = (localHiddenFilePath, fileID) => {
+    window.cep.fs.writeFile(decodeURI(localHiddenFilePath), fileID);
   };
 </script>
 

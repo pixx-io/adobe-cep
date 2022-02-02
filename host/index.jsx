@@ -60,7 +60,16 @@ function getApplicationName() {
 function isPixxioDocument() {
   try {
     if (hasOpenDocument()) {
-      return app.activeDocument.extractLabel('pixxio.fileID');
+      if (getApplicationName() === applicationNames.INDESIGN) {
+        return app.activeDocument.extractLabel('pixxio.fileID');
+      } else if (getApplicationName() === applicationNames.PHOTOSHOP) {
+        var currentDocumentInformation = JSON.parse(getCurrentDocumentInformation());
+        if (currentDocumentInformation && currentDocumentInformation.labels && currentDocumentInformation.labels.fileID) {
+          return currentDocumentInformation.labels.fileID;
+        } else {
+          return false;
+        }
+      }
     } else {
       return false;
     }
@@ -82,14 +91,31 @@ function insertLabelToElement(labelName, labelValue, element) {
   }
 }
 
+function saveFileIDToHiddenFile(localFilePath, fileID) {
+  var fileInfo = {
+    localFilePath: localFilePath,
+    fileID: fileID
+  }
+  
+  sendEvent('io.pixx.csxs.events.saveFileIDToHiddenFile', JSON.stringify(fileInfo));
+}
+
 function placeFile(localFilePath, fileID) {
   try {
     var file = new File(localFilePath);
-    app.activeDocument.place(file, true);
 
     if (getApplicationName() === applicationNames.INDESIGN) {
+      app.activeDocument.place(file, true);
       var link = app.activeDocument.links.lastItem();
       insertLabelToElement('pixxio.fileID', fileID, link);
+    } else if (getApplicationName() === applicationNames.PHOTOSHOP) {
+      var whereToAdd = app.activeDocument;
+      app.load(file); //load it into documents
+      var tmpFile = app.activeDocument; //prepare your image layer as active document
+      tmpFile.selection.selectAll();
+      tmpFile.selection.copy(); //copy image into clipboard
+      tmpFile.close(SaveOptions.DONOTSAVECHANGES); //close image without saving changes
+      whereToAdd.paste(); //paste selection into your document
     }
     saveCurrentDocument();
   } catch (e) {
@@ -105,9 +131,10 @@ function openDocument(localFilePath, fileID) {
 
     if (getApplicationName() === applicationNames.INDESIGN) {
       insertLabelToElement('pixxio.fileID', fileID);
-
-      saveCurrentDocument();
+    } else if (getApplicationName() === applicationNames.PHOTOSHOP) {
+      saveFileIDToHiddenFile(localFilePath, fileID);
     }
+    saveCurrentDocument();
   } catch (e) {
     sendError('openDocument error: ' + e.message + ' (' + localFilePath + ')');
     return JSON.stringify({ success: false, errorMessage: e.message });
@@ -141,14 +168,38 @@ function getCurrentDocumentInformation() {
       return false;
     }
 
-    var labels = {
-      fileID: activeDocument.extractLabel('pixxio.fileID'),
-      fileName: activeDocument.extractLabel('pixxio.fileName')
-    };
+    var directory;
+    var fileID;
+    if (getApplicationName() === applicationNames.INDESIGN) {
+      try {
+        directory = normalizeLocalPath(activeDocument.filePath.fsName);
+        fileID = activeDocument.extractLabel('pixxio.fileID');
+      } catch(e) {}
+    } else if (getApplicationName() === applicationNames.PHOTOSHOP) {
+      try {
+        directory = normalizeLocalPath(app.activeDocument.path.fsName);
+
+        const localFilePath = normalizeLocalPath(app.activeDocument.fullName.fsName);
+        const localFileName = localFilePath.split('/').pop();
+        const hiddenFilePath = localFilePath.replace(new RegExp(localFileName + '$'), '.fileID_' + localFileName);
+
+        var hiddenFile = new File(hiddenFilePath);
+        if (hiddenFile.exists) {
+          hiddenFile.open('r');
+          fileID = hiddenFile.read();
+          hiddenFile.close();
+        }
+      } catch(e) {}
+    }
+
+    var labels = {};
+    if (fileID) {
+      labels.fileID = fileID;
+    }
 
     var currentDocumentInformation = {
       name: activeDocument.name,
-      directory: normalizeLocalPath(activeDocument.filePath.fsName),
+      directory: directory,
       labels: labels
     };
 
@@ -333,10 +384,22 @@ function getOpenDocuments() {
     if (hasOpenDocument()) {
       for (var i = 0; i < app.documents.length; i++) {
         var document = app.documents[i];
+
+        var filePath;
+        if (getApplicationName() === applicationNames.INDESIGN) {
+          try {
+            filePath = normalizeLocalPath(document.filePath.fsName);
+          } catch(e) {}
+        } else if (getApplicationName() === applicationNames.PHOTOSHOP) {
+          try {
+            filePath = normalizeLocalPath(document.path.fsName);
+          } catch(e) {}
+        }
+
         openDocuments.push({
           id: document.id,
           name: document.name,
-          filePath: normalizeLocalPath(document.filePath.fsName)
+          filePath: filePath
         });
       }
     }
