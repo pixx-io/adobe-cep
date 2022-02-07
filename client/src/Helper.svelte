@@ -4,7 +4,7 @@
   const https = cep_node.require('https');
 
   import { onMount } from 'svelte';
-  import { csInterface, pixxio, appDataFolder } from "./stores/general.js";
+  import { csInterface, pixxio, appDataFolder, applicationName, applicationNames } from "./stores/general.js";
   import DonutChart from "./components/DonutChart.svelte";
 
   let progressInOverlayPercent = 0;
@@ -169,8 +169,7 @@
           const fileToUpload = new File([fileBlob], currentDocumentInformation.name);
 
           let options = {
-            file: fileToUpload,
-            asynchronousConversion: false
+            file: fileToUpload
           };
 
           const documentLabels = currentDocumentInformation.labels;
@@ -184,7 +183,12 @@
 
           $pixxio.pushMedia(options).then((pushMediaResponse) => {
             if (pushMediaResponse.success && !pushMediaResponse.isDuplicate) {
-              runJsx("insertLabelToElement('pixxio.fileID', '" + pushMediaResponse.id + "')");
+              if ($applicationName === $applicationNames.INDESIGN) {
+                runJsx("insertLabelToElement('pixxio.fileID', '" + pushMediaResponse.id + "')");
+              } else if ($applicationName === $applicationNames.PHOTOSHOP) {
+                runJsx("saveFileIDToHiddenFile('" + filePath + "', '" + pushMediaResponse.id + "')");
+              }
+              
               runJsx("saveCurrentDocument()");
               runJsx("sendEvent('documentAfterActivate')");
               resolve();
