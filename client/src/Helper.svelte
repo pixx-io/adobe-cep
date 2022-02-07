@@ -169,8 +169,7 @@
           const fileToUpload = new File([fileBlob], currentDocumentInformation.name);
 
           let options = {
-            file: fileToUpload,
-            asynchronousConversion: false
+            file: fileToUpload
           };
 
           const documentLabels = currentDocumentInformation.labels;
