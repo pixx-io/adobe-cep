@@ -120,13 +120,13 @@
       if (tabName === "openFile") {
         allowTypes = ['indd'];
       } else if (tabName === "placeFile") {
-        allowTypes = ['indd','jpg','jpeg','png','psd','tif','tiff','ai','eps','pdf'];
+        allowTypes = ['indd','jpg','jpeg','png','psd','tif','tiff','ai','eps','pdf','svg'];
       }
     } else if ($applicationName === $applicationNames.PHOTOSHOP) {
       if (tabName === "openFile") {
-        allowTypes = ['psd','tif','tiff','eps','gif','jpeg','jpg','png','png00','png8','png24','png32','png48','png64'];
+        allowTypes = ['psd','tif','tiff','eps','gif','jpeg','jpg','png','png00','png8','png24','png32','png48','png64','psb','pdf'];
       } else if (tabName === "placeFile") {
-        allowTypes = ['jpeg','jpg','png','png00','png8','png24','png32','png48','png64'];
+        allowTypes = ['jpeg','jpg','png','png00','png8','png24','png32','png48','png64','pdf','tif','tiff','bmp','svg','eps','ai','heic','heif','psd'];
       }
     }
     
