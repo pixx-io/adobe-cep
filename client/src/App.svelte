@@ -7,7 +7,7 @@
   import 'tippy.js/dist/tippy.css'; // optional for styling
   
   // STORE
-  import { csInterface, pixxio, appDataFolder, applicationName, applicationNames, helper } from "./stores/general.js";
+  import { csInterface, pixxio, appDataFolder, applicationName, applicationNames, helper, errorcodes } from "./stores/general.js";
 
   // COMPONENTS
   import Helper from "./Helper.svelte";
@@ -166,7 +166,7 @@
     $helper.download(remoteFilePath, localFilePath).then((downloadInfo) => {
       $helper.runJsx('openDocument("' + encodeURI(localFilePath) + '", "' + selectedFile.file.id + '")');
     }).catch((error) => {
-      $helper.showError('openDocument download error: ' + error);
+      $helper.showError('Error ' + $errorcodes.OPEN_DOCUMENT_DOWNLOAD + ': ' + error);
     });
   };
 
@@ -178,7 +178,7 @@
         $helper.download(remoteFilePath, localFilePath).then((downloadInfo) => {
           $helper.runJsx('placeFile("' + encodeURI(localFilePath) + '", "' + selectedFile.file.id + '")');
         }).catch((error) => {
-          $helper.showError('placeImage download error: ' + error);
+          $helper.showError('Error ' + $errorcodes.PLACE_IMAGE_DOWNLOAD + ': ' + error);
         });
       } else {
         $helper.showError('You have to open a document first');

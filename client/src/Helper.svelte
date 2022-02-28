@@ -370,7 +370,7 @@
 {#if errorMessage}
   <div class="backdrop">
     <div class="notice errorOverlay">
-      <span>{errorMessage}</span>
+      <span class="message">{errorMessage}</span>
       <button on:click="{e => errorMessage = null}">X</button>
     </div>
   </div>

@@ -21,3 +21,9 @@ export const linkStatuses = readable({
   LINK_OUT_OF_DATE: 'LINK_OUT_OF_DATE',
   LINK_NORMAL: 'LINK_NORMAL'
 });
+
+export const errorcodes = readable({
+  // codes 10101 - 11801 specified in index.jsx
+  OPEN_DOCUMENT_DOWNLOAD: 11901,
+  PLACE_IMAGE_DOWNLOAD: 12001
+});
