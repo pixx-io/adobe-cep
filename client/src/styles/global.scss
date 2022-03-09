@@ -155,6 +155,7 @@ main {
 
           .pixxioFiles__container {
             flex: 1;
+            max-height: unset;
 
             .pixxioSquare {
               background-color: var(--background-color-inactive);
