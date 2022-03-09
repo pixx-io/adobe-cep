@@ -167,17 +167,20 @@
 
           const fileBlob = new Blob([fs.readFileSync(filePath)]);
           const fileToUpload = new File([fileBlob], currentDocumentInformation.name);
+          const documentLabels = currentDocumentInformation.labels;
+          const fileID = parseInt(documentLabels.fileID, 10);
 
           let options = {
             file: fileToUpload
           };
 
-          const documentLabels = currentDocumentInformation.labels;
           if (activeUploadOptionName === 'versionizeFile') {
-            options.versionID = parseInt(documentLabels.fileID);
+            options.versionID = fileID;
             options.metadataToCopy = ['all'];
+          } else if (activeUploadOptionName === 'variantFile') {
+            options.variantFileID = fileID;
           } else if (activeUploadOptionName === 'replaceFile') {
-            options.replaceID = parseInt(documentLabels.fileID);
+            options.replaceID = fileID;
             options.metadataToCopy = ['all'];
           }
 
