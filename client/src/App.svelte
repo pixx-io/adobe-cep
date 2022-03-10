@@ -141,10 +141,10 @@
       max: 1,
       allowFormats: allowFormats,
       allowTypes: allowTypes,
-      additionalResponseFields: ["id", "fileName"],
-      showFileName: true,
+      showFileName: false,
+      showFileSize: false,
       showFileType: true,
-      showFileSize: false
+      showSubject: true
     }).then((value) => {
       if (activeMainTabName === "openFile") {
         openDocument(value[0]);
@@ -290,8 +290,10 @@
       if (event.data !== 'empty') {
         const localFilePath = event.data.localFilePath;
         const localFileName = localFilePath.split('/').pop();
-        const hiddenFilePath = localFilePath.replace(new RegExp(localFileName + '$'), '.fileID_' + localFileName);
-        saveFileIDToHiddenFile(hiddenFilePath, event.data.fileID);
+        $helper.escapeRegExp(localFileName).then((escapedLocalFileName) => {
+          const hiddenFilePath = localFilePath.replace(new RegExp(escapedLocalFileName + '$'), '.fileID_' + localFileName);
+          saveFileIDToHiddenFile(hiddenFilePath, event.data.fileID);
+        });
       }
     });
   };

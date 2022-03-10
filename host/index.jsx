@@ -202,7 +202,7 @@ function getCurrentDocumentInformation() {
 
         const localFilePath = normalizeLocalPath(app.activeDocument.fullName.fsName);
         const localFileName = localFilePath.split('/').pop();
-        const hiddenFilePath = localFilePath.replace(new RegExp(localFileName + '$'), '.fileID_' + localFileName);
+        const hiddenFilePath = localFilePath.replace(new RegExp(escapeRegExp(localFileName) + '$'), '.fileID_' + localFileName);
 
         var hiddenFile = new File(hiddenFilePath);
         if (hiddenFile.exists) {
@@ -430,4 +430,8 @@ function getOpenDocuments() {
     sendError('Error ' + errorcodes.GET_OPEN_DOCUMENTS + ': ' + e.message);
     return JSON.stringify({ success: false, errorMessage: e.message });
   }
+}
+
+function escapeRegExp(stringToGoIntoTheRegex) {
+  return stringToGoIntoTheRegex.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
 }
