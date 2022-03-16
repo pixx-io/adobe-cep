@@ -335,6 +335,14 @@
       });
     });
   };
+
+  export const escapeRegExp = (stringToGoIntoTheRegex) => {
+    return new Promise(async (resolve, reject) => {
+      runJsx('escapeRegExp("' + stringToGoIntoTheRegex + '")').then((escapedString) => {
+        resolve(escapedString);
+      });
+    });
+  }
 </script>
 
 <!-- CONFIRM DIALOG -->
