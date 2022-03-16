@@ -38,6 +38,7 @@
   const allUploadOptions = [
     { name: 'uploadNewFile', label: "New file" },
     { name: 'versionizeFile', label: "New version" },
+    { name: 'variantFile', label: "New variant" },
     { name: 'replaceFile', label: "Replace current" }
   ];
   let uploadOptions = allUploadOptions;
