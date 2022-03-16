@@ -84,6 +84,21 @@ main {
       background-color: var(--background-color);
       color: rgba(var(--color-rgb), .5);
     }
+
+    .selectContainer{
+      background-color: var(--background-color);
+      border-width: 0;
+
+      .item {
+        background-color: var(--background-color);
+        color: var(--color);
+
+        &.active {
+          background-color: var(--primary-color);
+          color: var(--background-color);
+        }
+      }
+    }
   }
 
   .buttonGroup {
