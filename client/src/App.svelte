@@ -167,7 +167,7 @@
     $helper.download(remoteFilePath, localFilePath).then((downloadInfo) => {
       $helper.runJsx('openDocument("' + encodeURI(localFilePath) + '", "' + selectedFile.file.id + '")');
     }).catch((error) => {
-      $helper.showError('Error ' + $errorcodes.OPEN_DOCUMENT_DOWNLOAD + ': ' + error);
+      $helper.showError(error + ' (Error ' + $errorcodes.OPEN_DOCUMENT_DOWNLOAD + ')');
     });
   };
 
@@ -179,7 +179,7 @@
         $helper.download(remoteFilePath, localFilePath).then((downloadInfo) => {
           $helper.runJsx('placeFile("' + encodeURI(localFilePath) + '", "' + selectedFile.file.id + '")');
         }).catch((error) => {
-          $helper.showError('Error ' + $errorcodes.PLACE_IMAGE_DOWNLOAD + ': ' + error);
+          $helper.showError(error + ' (Error ' + $errorcodes.PLACE_IMAGE_DOWNLOAD + ')');
         });
       } else {
         $helper.showError('You have to open a document first');

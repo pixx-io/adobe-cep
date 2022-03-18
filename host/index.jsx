@@ -55,7 +55,7 @@ function normalizeLocalPath(localPath) {
   try {
     return localPath.split('\\').join('/');
   } catch (e) {
-    sendError('Error ' + errorcodes.NORMALIZE_LOCAL_PATH + ': ' + e.message + ' (' + localPath + ')');
+    sendError(e.message + ' (' + localPath + ') (Error ' + errorcodes.NORMALIZE_LOCAL_PATH + ')');
     return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
@@ -64,7 +64,7 @@ function hasOpenDocument() {
   try {
     return !!app.documents.length && !!app.activeDocument;
   } catch (e) {
-    sendError('Error ' + errorcodes.HAS_OPEN_DOCUMENT + ': ' + e.message);
+    sendError(e.message + ' (Error ' + errorcodes.HAS_OPEN_DOCUMENT + ')');
     return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
@@ -73,7 +73,7 @@ function getApplicationName() {
   try {
     return app.name;
   } catch (e) {
-    sendError('Error ' + errorcodes.GET_APPLICATION_NAME + ': ' + e.message);
+    sendError(e.message + ' (Error ' + errorcodes.GET_APPLICATION_NAME + ')');
     return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
@@ -95,7 +95,7 @@ function isPixxioDocument() {
       return false;
     }
   } catch (e) {
-    sendError('Error ' + errorcodes.IS_PIXXIO_DOCUMENT + ': ' + e.message);
+    sendError(e.message + ' (Error ' + errorcodes.IS_PIXXIO_DOCUMENT + ')');
     return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
@@ -107,7 +107,7 @@ function insertLabelToElement(labelName, labelValue, element) {
     }
     element.insertLabel(labelName, labelValue);
   } catch (e) {
-    sendError('Error ' + errorcodes.INSERT_LABEL + ': ' + e.message + ' (' + labelName + ': ' + labelValue + ')');
+    sendError(e.message + ' (' + labelName + ': ' + labelValue + ') (Error ' + errorcodes.INSERT_LABEL + ')');
     return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
@@ -140,7 +140,7 @@ function placeFile(localFilePath, fileID) {
     }
     saveCurrentDocument();
   } catch (e) {
-    sendError('Error ' + errorcodes.PLACE_FILE + ': ' + e.message + ' (' + localFilePath + ')');
+    sendError(e.message + ' (' + localFilePath + ') (Error ' + errorcodes.PLACE_FILE + ')');
     return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
@@ -157,7 +157,7 @@ function openDocument(localFilePath, fileID) {
     }
     saveCurrentDocument();
   } catch (e) {
-    sendError('Error ' + errorcodes.OPEN_DOCUMENT + ': ' + e.message + ' (' + localFilePath + ')');
+    sendError(e.message + ' (' + localFilePath + ') (Error ' + errorcodes.OPEN_DOCUMENT + ')');
     return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
@@ -166,7 +166,7 @@ function saveCurrentDocument() {
   try {
     app.activeDocument.save();
   } catch (e) {
-    sendError('Error ' + errorcodes.SAVE_CURRENT_DOCUMENT + ': ' + e.message);
+    sendError(e.message + ' (Error ' + errorcodes.SAVE_CURRENT_DOCUMENT + ')');
     return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
@@ -177,7 +177,7 @@ function getFileDirectory() {
     Folder(folderName).create();
     return folderName;
   } catch (e) {
-    sendError('Error ' + errorcodes.GET_FILE_DIRECTORY + ': ' + e.message);
+    sendError(e.message + ' (Error ' + errorcodes.GET_FILE_DIRECTORY + ')');
     return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
@@ -226,7 +226,7 @@ function getCurrentDocumentInformation() {
 
     return JSON.stringify(currentDocumentInformation);
   } catch (e) {
-    sendError('Error ' + errorcodes.GET_CURRENT_DOCUMENT_INFORMATION + ': ' + e.message);
+    sendError(e.message + ' (Error ' + errorcodes.GET_CURRENT_DOCUMENT_INFORMATION + ')');
     return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
@@ -245,7 +245,7 @@ function getAllLinksFileIDs() {
 
     return JSON.stringify(removeDuplicatesFromArray(fileIDs));
   } catch (e) {
-    sendError('Error ' + errorcodes.GET_ALL_LINKS_FILE_IDS + ': ' + e.message);
+    sendError(e.message + ' (Error ' + errorcodes.GET_ALL_LINKS_FILE_IDS + ')');
     return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
@@ -280,7 +280,7 @@ function getSelectedLinksFileIDs() {
 
     return JSON.stringify(removeDuplicatesFromArray(selectedFileIDs));
   } catch (e) {
-    sendError('Error ' + errorcodes.GET_SELECTED_LINKS_FILE_IDS + ': ' + e.message);
+    sendError(e.message + ' (Error ' + errorcodes.GET_SELECTED_LINKS_FILE_IDS + ')');
     return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
@@ -299,7 +299,7 @@ function removeDuplicatesFromArray(array) {
 
     return uniqueArray;
   } catch (e) {
-    sendError('Error ' + errorcodes.REMOVE_DUPLICATES + ': ' + e.message + ' (' + JSON.stringify(array) + ')');
+    sendError(e.message + ' (' + JSON.stringify(array) + ') (Error ' + errorcodes.REMOVE_DUPLICATES + ')');
     return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
@@ -314,7 +314,7 @@ function reLink(currentFileID, newFileID, localFilePath) {
       }
     }
   } catch (e) {
-    sendError('Error ' + errorcodes.RE_LINK + ': ' + e.message + ' (currentFileID: ' + currentFileID + ' / newFileID:' + newFileID + ' / localFilePath: ' + localFilePath + ')');
+    sendError(e.message + ' (currentFileID: ' + currentFileID + ' / newFileID:' + newFileID + ' / localFilePath: ' + localFilePath + ') (Error ' + errorcodes.RE_LINK + ')');
     return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
@@ -327,7 +327,7 @@ function updateLink(fileID) {
       }
     }
   } catch (e) {
-    sendError('Error ' + errorcodes.UPDATE_LINK + ': ' + e.message + ' (' + fileID + ')');
+    sendError(e.message + ' (' + fileID + ') (Error ' + errorcodes.UPDATE_LINK + ')');
     return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
@@ -347,7 +347,7 @@ function getLinkInfo(fileID) {
     }
     return JSON.stringify(info);
   } catch (e) {
-    sendError('Error ' + errorcodes.GET_LINK_INFO + ': ' + e.message + ' (' + fileID + ')');
+    sendError(e.message + ' (' + fileID + ') (Error ' + errorcodes.GET_LINK_INFO + ')');
     return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
@@ -393,7 +393,7 @@ function getLinks() {
     
     return JSON.stringify(links);
   } catch (e) {
-    sendError('Error ' + errorcodes.GET_LINKS + ': ' + e.message);
+    sendError(e.message + ' (Error ' + errorcodes.GET_LINKS + ')');
     return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
@@ -427,7 +427,7 @@ function getOpenDocuments() {
     
     return JSON.stringify(openDocuments);
   } catch (e) {
-    sendError('Error ' + errorcodes.GET_OPEN_DOCUMENTS + ': ' + e.message);
+    sendError(e.message + ' (Error ' + errorcodes.GET_OPEN_DOCUMENTS + ')');
     return JSON.stringify({ success: false, errorMessage: e.message });
   }
 }
