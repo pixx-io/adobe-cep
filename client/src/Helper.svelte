@@ -424,6 +424,7 @@
       border: none;
       color: inherit;
       cursor: pointer;
+      margin-left: 8px;
 
       .material-icons {
         font-size: 18px;
