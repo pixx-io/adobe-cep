@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<ExtensionManifest ExtensionBundleId="io.pixx.adobe" ExtensionBundleVersion="2.0.1" Version="7.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<ExtensionManifest ExtensionBundleId="io.pixx.adobe" ExtensionBundleVersion="2.0.2" Version="7.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <ExtensionList>
-    <Extension Id="io.pixx.adobe.panel" Version="2.0.1" />
+    <Extension Id="io.pixx.adobe.panel" Version="2.0.2" />
   </ExtensionList>
   <ExecutionEnvironment>
     <HostList>
