@@ -25,7 +25,7 @@
     "svelte-preprocess": "^4.10.1"
   },
   "dependencies": {
-    "@pixx.io/jsdk": "^0.4.0",
+    "@pixx.io/jsdk": "^0.4.1",
     "sirv-cli": "^1.0.0",
     "tippy.js": "^6.3.7"
   }
