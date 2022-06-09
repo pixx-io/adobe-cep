@@ -144,15 +144,22 @@
         resolve(fileInfo);
       });
 
-      request.on("error", (error) => {
+      const undo = (error) => {
         logError(error);
-        fs.unlink(localFilePath, () => reject(error));
-      });
+        request.abort();
+        fileStream.close();
 
-      fileStream.on("error", (error) => {
-        logError(error);
-        fs.unlink(localFilePath, () => reject(error));
-      });
+        try {
+          fs.unlink(localFilePath, () => reject(error));
+        } catch {
+          reject(error)
+        }
+      };
+
+      fileStream.on("error", (error) => { undo(); });
+      request.on("error", (error) => { undo(); });
+      request.on("timeout", (error) => { undo(); });
+      request.on("uncaughtException", (error) => { undo(); });
 
       request.end();
     });
