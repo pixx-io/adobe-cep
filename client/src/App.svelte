@@ -17,7 +17,7 @@
   import RadioGroup from "./components/RadioGroup.svelte";
   import ReLink from "./components/ReLink.svelte";
 
-  const versionNumber = 'v2.0.1';
+  const versionNumber = 'v2.0.3';
 
   let themeManagerComponent;
   let helperComponent;
