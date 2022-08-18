@@ -1,0 +1,29 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+      {
+          "type": "chrome",
+          "request": "attach",
+          "name": "[Attach] CEP JavaScript",
+          "port": 8089,   // <-- Whatever debug port you have configured.
+          "webRoot": "${workspaceRoot}",
+          "pathMapping": {
+              "/": "${workspaceRoot}"
+          }
+      },
+      {
+          "type": "extendscript-debug",
+          "request": "attach",
+          "name": "[Attach] CEP ExtendScript",
+      }
+  ],
+  "compounds": [
+      {
+          "name": "[Compound] Debug CEP",
+          "configurations": [
+              "[Attach] CEP JavaScript",
+              "[Attach] CEP ExtendScript"
+          ]
+      }
+  ]
+}

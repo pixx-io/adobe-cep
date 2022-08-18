@@ -156,10 +156,10 @@
         }
       };
 
-      fileStream.on("error", (error) => { undo(); });
-      request.on("error", (error) => { undo(); });
-      request.on("timeout", (error) => { undo(); });
-      request.on("uncaughtException", (error) => { undo(); });
+      fileStream.on("error", (error) => { undo(error); });
+      request.on("error", (error) => { undo(error); });
+      request.on("timeout", (error) => { undo(error); });
+      request.on("uncaughtException", (error) => { undo(error); });
 
       request.end();
     });
